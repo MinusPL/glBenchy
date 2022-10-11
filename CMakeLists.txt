@@ -1,5 +1,18 @@
 #configure project and make it crossplatform (Windows, Linux, Web)
 cmake_minimum_required(VERSION 3.21)
+
+include(FetchContent)
+
+
+FetchContent_Declare(
+  glfw3
+  GIT_REPOSITORY https://github.com/glfw/glfw.git
+  GIT_TAG        7482de6071d21db77a7236155da44c172a7f6c9e # release-3.3.8
+  OVERRIDE_FIND_PACKAGE
+)
+
+include_directories(include)
+
 project(glBenchy)
 
 enable_language(C)
@@ -22,37 +35,11 @@ set_property(
     STRINGS AUTO WIN32 LINUX WASM
 )
 
-if(BENCHY_OS STREQUAL "AUTO")
-    if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
-        set(BENCHY_OS "WIN32" CACHE STRING "Select target OS API: WIN32, LINUX, WASM" FORCE)
-    #elseif (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Darwin")
-    #set(BENCHY_OS "COCOA" CACHE STRING "A more specific platform selector to choose from, choose the exact OS protocol to use, can be WIN32, UWP, COCOA, UIKIT, XCB, XLIB, MIR, WAYLAND, ANDROID, WASM, NOOP." FORCE)
-    elseif (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
-        set(BENCHY_OS "LINUX" CACHE STRING "Select target OS API: WIN32, LINUX, WASM" FORCE)
-    endif()
-endif()
-
-option(CONSOLE_ENABLED "Enable console" ON)
-
-if(CONSOLE_ENABLED)
-    add_definitions("-DCONSOLE")
-endif()
+find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
 
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include") 
+#Common has to be added after executable statement - otherwise there's no target to attach sources to.
+add_subdirectory(src)
 
-add_subdirectory(src/Common)
-
-#Target executable with proper flags
-if(BENCHY_OS STREQUAL "WIN32")
-    add_subdirectory(src/Win32)
-elseif(BENCHY_OS STREQUAL "WASM")
-    add_subdirectory(src/Wasm)
-endif()
-
-
-
-#Add sources directory
-#add_subdirectory(src)
-
-#add_executable(glBenchy glbenchy.cxx)
+target_link_libraries(glBenchy glfw ${OPENGL_LIBRARY})

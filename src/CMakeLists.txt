@@ -1,3 +1,4 @@
 #Sources!
 
-add_executable(glBenchy glBenchy.cpp)
+file(GLOB_RECURSE SOURCES "*.cpp" "*.c")
+add_executable(glBenchy ${SOURCES})
