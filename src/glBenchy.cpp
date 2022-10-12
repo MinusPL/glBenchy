@@ -2,6 +2,9 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 const char *vertexShaderSource = ""
     "layout (location = 0) in vec3 aPos;\n"
@@ -17,10 +20,18 @@ const char *fragmentShaderSource = ""
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\n\0";
 
+
+//I was drunk or enlightened, either way when I wrote that me and god knew what this thing does.
+//Now only god knows what is going on here.
+//TODO: Cleanup and atomize parts. Introduce classes/structures.
 int main(int argc, char** argv)
 {
     //Atomize it to modules etc.
+    //This is always called - initialize everything
     glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 
     GLFWwindow* winPtr = glfwCreateWindow(1280, 720, "TEST", nullptr, nullptr);
 
@@ -114,14 +125,31 @@ int main(int argc, char** argv)
 
     glUseProgram(shaderProgram);
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(winPtr, true);
+    ImGui_ImplOpenGL3_Init("#version 300 es");
+
     //Loop!
     while (!glfwWindowShouldClose(winPtr))
     {
+        //begin ImGui Frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::ShowDemoWindow();
+        ImGui::Render();
+
         glClear(GL_COLOR_BUFFER_BIT);
 
          // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(winPtr);
         glfwPollEvents();  
