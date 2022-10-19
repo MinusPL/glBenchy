@@ -7,10 +7,10 @@ include(FetchContent)
 FetchContent_Declare(
   glfw3
   GIT_REPOSITORY https://github.com/glfw/glfw.git
-  GIT_TAG        7482de6071d21db77a7236155da44c172a7f6c9e # release-3.3.8
+  GIT_TAG        3.3.8 # release-3.3.8
   OVERRIDE_FIND_PACKAGE
 )
-FetchContent_MakeAvailable(glfw3)
+
 
 include_directories(include)
 
