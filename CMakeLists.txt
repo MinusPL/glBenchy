@@ -10,7 +10,7 @@ FetchContent_Declare(
   GIT_TAG        7482de6071d21db77a7236155da44c172a7f6c9e # release-3.3.8
   OVERRIDE_FIND_PACKAGE
 )
-
+FetchContent_MakeAvailable(glfw3)
 
 include_directories(include)
 
