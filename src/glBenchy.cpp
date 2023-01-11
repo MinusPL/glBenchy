@@ -12,12 +12,16 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 
+#include "global/globals.h"
+
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <iostream>
 
 #include <cmath>
+
+//#include <unistd.h>
 
 const char *vertexShaderSource = "#version 300 es\n"
     "layout (location = 0) in vec3 aPos;\n"         
@@ -308,9 +312,8 @@ void main( )
 
 unsigned int currentShader = 0;
 
-unsigned int shaderProgram[16];
-float deltaTime = 0.0f; 
-float lastFrame = 0.0f;
+unsigned int shaderProgram[16]; 
+double lastFrame = 0;
 GLFWwindow* winPtr = nullptr;
 
 float screen[] = {960.0f, 540.0f};
@@ -341,6 +344,14 @@ enum shaders
     SHADER3 = 4
 };
 
+#include "object/object.h";
+#include "global/glbtime.h"
+
+    
+GLBObject a;
+GLBObject b;
+GLBObject c;
+
 void mainLoop();
 
 //I was drunk or enlightened, either way when I wrote that me and god knew what this thing does.
@@ -348,6 +359,31 @@ void mainLoop();
 //TODO: Cleanup and atomize parts. Introduce classes/structures.
 int main(int argc, char** argv)
 {
+    //Set time this instance is running.
+    Time::time = 0;
+
+    //read commandline, to get all params
+    for(int i = 0; i < argc; i++)
+    {
+        std::string option(argv[i]);
+        //Now look at this beautiful if ladder 
+        if(option == "--edit")
+            Global::EditorMode = true;
+    }
+
+    //Now, check if we're in edit mode or in runtime, private version will use other approach
+    if(Global::EditorMode)
+    {
+        printf("Launching editor application!\n");
+        
+    }
+
+
+    printf("%s %s %s\n", UUIDGenerator::UUIDToString(a.id).c_str(),
+                         UUIDGenerator::UUIDToString(b.id).c_str(),
+                         UUIDGenerator::UUIDToString(c.id).c_str());
+    
+    //printf("%s\n", getcwd(NULL, 128));
     //Atomize it to modules etc.
     //This is always called - initialize everything
     glfwInit();
@@ -507,6 +543,8 @@ int main(int argc, char** argv)
 
     printf("Entering main loop!\n");
     //Loop!
+    //Set time offset
+    Time::time = glfwGetTime();
 #ifdef EMSCRIPTEN
       emscripten_set_main_loop(mainLoop, 0, 1);
 #else
@@ -548,10 +586,13 @@ void drawShaderOptionWindow()
 
 void mainLoop()
 {
-    float currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame; 
+    //Calculate delta time.
+    Time::time = glfwGetTime();
+    Time::deltaTime = Time::time - lastFrame;
+    lastFrame = Time::time;
     
+    a.Update();
+
     //begin ImGui Frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -563,7 +604,7 @@ void mainLoop()
 
     glUseProgram(currentShader);
     glUniform2fv(glGetUniformLocation(currentShader, "iResolution"), 1, screen);
-    glUniform1f(glGetUniformLocation(currentShader, "iTime"), fmod(currentFrame, 60.f)); 
+    glUniform1f(glGetUniformLocation(currentShader, "iTime"), fmod(Time::time, 60.f)); 
     glBindVertexArray(VAO);
     // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
     glDrawArrays(GL_TRIANGLES, 0, 6);
