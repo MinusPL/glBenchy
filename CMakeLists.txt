@@ -12,7 +12,7 @@ FetchContent_Declare(
 )
 
 
-include_directories(include)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include") 
 
 project(glBenchy)
 
@@ -27,7 +27,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "/W3 /EHsc")
 
 # Options
 set(BENCHY_OS AUTO CACHE STRING "Select target OS API: WIN32, LINUX, WASM")
@@ -50,7 +50,8 @@ endif ()
 
 if(NOT EMSCRIPTEN)
   find_package(glfw3 REQUIRED)
-  target_link_libraries(glBenchy glfw)
+  target_link_libraries(glBenchy PUBLIC glfw)
+  #target_include_directories(glBenchy PUBLIC glfw)
 endif()
 
 if(UNIX)
@@ -63,5 +64,5 @@ find_package(OpenGL REQUIRED)
 
 #Common has to be added after executable statement - otherwise there's no target to attach sources to.
 
-
-target_link_libraries(glBenchy glfw ${OPENGL_LIBRARY})
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(glBenchy PUBLIC glfw PUBLIC ${OPENGL_LIBRARY})

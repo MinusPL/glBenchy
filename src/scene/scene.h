@@ -13,6 +13,7 @@
 class GLBScene
 {
 public:
+    std::string sceneName;
     std::map<uint64_t, GLBObject*> hierarchy;
     void Update();
 };
