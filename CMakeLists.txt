@@ -12,9 +12,19 @@ FetchContent_Declare(
 )
 
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include") 
+
+FetchContent_Declare(
+  assimp
+  GIT_REPOSITORY https://github.com/assimp/assimp.git
+  GIT_TAG v5.2.5 # Release 5.2.5
+  OVERRIDE_FIND_PACKAGE
+)
+set(BUILD_SHARED_LIBS OFF)
+FetchContent_MakeAvailable(assimp)
 
 project(glBenchy)
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include") 
 
 enable_language(C)
 enable_language(CXX)
@@ -27,7 +37,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "/W3 /EHsc")
+
 
 # Options
 set(BENCHY_OS AUTO CACHE STRING "Select target OS API: WIN32, LINUX, WASM")
@@ -36,6 +46,10 @@ set_property(
     BENCHY_OS PROPERTY
     STRINGS AUTO WIN32 LINUX WASM
 )
+
+if(WIN32)
+    set(CMAKE_CXX_FLAGS "/W3 /EHsc")
+endif()
 
 add_subdirectory(src)
 
@@ -50,7 +64,7 @@ endif ()
 
 if(NOT EMSCRIPTEN)
   find_package(glfw3 REQUIRED)
-  target_link_libraries(glBenchy PUBLIC glfw)
+  target_link_libraries(glBenchy glfw)
   #target_include_directories(glBenchy PUBLIC glfw)
 endif()
 
@@ -65,4 +79,4 @@ find_package(OpenGL REQUIRED)
 #Common has to be added after executable statement - otherwise there's no target to attach sources to.
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(glBenchy PUBLIC glfw PUBLIC ${OPENGL_LIBRARY})
+target_link_libraries(glBenchy glfw assimp ${OPENGL_LIBRARY})
