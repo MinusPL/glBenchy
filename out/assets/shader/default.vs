@@ -1,9 +1,13 @@
-#verion 300 es
-out vec4 FragColor;
+#version 300 es
+
+precision highp float;
+
+layout (location = 0) in vec3 vPos;
   
-in vec4 vertexColor; // the input variable from the vertex shader (same name and same type)  
+out vec4 vertexColor; // the input variable from the vertex shader (same name and same type)  
 
 void main()
 {
-    FragColor = vertexColor;
+    gl_Position = vec4(vPos, 1.0); // see how we directly give a vec3 to vec4's constructor
+    vertexColor = vec4(0.5,0.87,0.2,1.0);
 }

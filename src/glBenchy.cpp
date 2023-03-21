@@ -112,8 +112,8 @@ int main(int argc, char** argv)
         try
         {
             // Open files
-            std::ifstream vertexShaderFile("../assets/shaders/default.vs");
-            std::ifstream fragmentShaderFile("../assets/shaders/default.fs");
+            std::ifstream vertexShaderFile("../assets/shader/default.vs");
+            std::ifstream fragmentShaderFile("../assets/shader/default.fs");
             std::stringstream vertexStream, fragmentStream;
             // Read file's buffer contents into streams
             vertexStream << vertexShaderFile.rdbuf();
