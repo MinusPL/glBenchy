@@ -78,5 +78,12 @@ find_package(OpenGL REQUIRED)
 
 #Common has to be added after executable statement - otherwise there's no target to attach sources to.
 
+set_target_properties(glBenchy PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}")
+set_target_properties(glBenchy PROPERTIES DEBUG_OUTPUT_NAME "${CMAKE_PROJECT_NAME}_d")
+
+set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/out/bin")
+
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(glBenchy glfw assimp ${OPENGL_LIBRARY})
+
+#copy assets to bin out and copy built executable to bin.

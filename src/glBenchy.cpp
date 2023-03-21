@@ -22,6 +22,13 @@
 #include "object/object.h"
 #include "global/glbtime.h"
 #include "editor/editor.h"
+#include "core/shader/shader.h"
+#include "core/mesh/mesh.h"
+
+//DEBUG
+Shader shp;
+Mesh m;
+
 
 GLFWwindow* winPtr = nullptr;
 
@@ -83,6 +90,52 @@ int main(int argc, char** argv)
     //Loop!
     //Set time offset
     Time::time = glfwGetTime();
+
+    m.vertices.push_back({0.5f, -0.5f, 0.0f});
+    m.vertices.push_back({0.5f, 0.5f, 0.0f});
+    m.vertices.push_back({0.0f, 0.5f, 0.0f});
+
+    m.colors.push_back({1.0f,1.0f,1.0f});
+    m.colors.push_back({1.0f,1.0f,1.0f});
+    m.colors.push_back({1.0f,1.0f,1.0f});
+
+    m.indices.push_back(0);
+    m.indices.push_back(1);
+    m.indices.push_back(2);
+
+    m.CreateMesh();
+
+    {
+        std::string vertexCode;
+        std::string fragmentCode;
+        std::string geometryCode;
+        try
+        {
+            // Open files
+            std::ifstream vertexShaderFile("../assets/shaders/default.vs");
+            std::ifstream fragmentShaderFile("../assets/shaders/default.fs");
+            std::stringstream vertexStream, fragmentStream;
+            // Read file's buffer contents into streams
+            vertexStream << vertexShaderFile.rdbuf();
+            fragmentStream << fragmentShaderFile.rdbuf();
+            // close file handlers
+            vertexShaderFile.close();
+            fragmentShaderFile.close();
+            // Convert stream into string
+            vertexCode = vertexStream.str();
+            fragmentCode = fragmentStream.str();
+        }
+        catch (std::exception e)
+        {
+            std::cout << "ERROR::SHADER: Failed to read shader files" << std::endl;
+        }
+        const GLchar *vertexShaderCode = vertexCode.c_str();
+        const GLchar *fragmentShaderCode = fragmentCode.c_str();
+        const GLchar *geometryShaderCode = geometryCode.c_str();
+
+	    shp.Compile(vertexShaderCode, fragmentShaderCode, nullptr);
+    }
+
 #ifdef EMSCRIPTEN
       emscripten_set_main_loop(mainLoop, 0, 1);
 #else
@@ -118,6 +171,10 @@ void mainLoop()
     ImGui::Render();
 
     glClear(GL_COLOR_BUFFER_BIT);
+
+    shp.Use();
+    m.Draw();
+
     //Render things?
     
     //Draw UI to framebuffer
