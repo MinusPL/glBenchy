@@ -7,6 +7,7 @@ class GLBComponent
 {
 public:
     virtual void Update();
+    virtual void Draw();
     GLBObject* mp_Object;
 };
 

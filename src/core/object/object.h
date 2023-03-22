@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "../global/uuid.h"
-#include "../components/component.h"
+#include "../../global/uuid.h"
+#include "../../components/component.h"
 #include "../transform/transform.h"
 
 /**
@@ -17,8 +17,9 @@ class GLBObject
 public:
     _UUID id;
     GLBObject();
-    std::vector<GLBComponent> components;
+    std::vector<GLBComponent*> components;
     virtual void Update();
+    virtual void Draw();
     Transform transform;
     bool disabled;
 };

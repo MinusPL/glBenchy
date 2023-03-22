@@ -9,7 +9,7 @@ class MeshRendererComponent : public GLBComponent
 {
 public:
     Mesh m_Mesh;
-    void Draw();
+    void Draw() override;
 };
 
 #endif

@@ -11,5 +11,12 @@ GLBObject::GLBObject() :
 void GLBObject::Update()
 {
     for(auto& component : components)
-        component.Update();
+        component->Update();
+}
+
+//should it be here?
+void GLBObject::Draw()
+{
+    for(auto& component : components)
+        component->Draw();
 }

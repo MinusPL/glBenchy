@@ -1,7 +1,7 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 
-#include "../handmademath/math.h"
+#include "../../handmademath/math.h"
 #include <stdexcept>
 
 //Since in C++ we do not have properties like in C# we need to make sure people cannot directly access these values
