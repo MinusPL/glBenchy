@@ -2,5 +2,6 @@
 
 void MeshRendererComponent::Draw()
 {
+
     m_Mesh.Draw();
 }

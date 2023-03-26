@@ -3,12 +3,14 @@
 
 #include "../component.h"
 #include "../../core/mesh/mesh.h"
+#include "../../core/material/material.h"
 
 
 class MeshRendererComponent : public GLBComponent
 {
 public:
     Mesh m_Mesh;
+    Material m_Material;
     void Draw() override;
 };
 

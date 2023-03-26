@@ -1,8 +1,14 @@
 #include "resource_manager.h"
 
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <string>
+
+static _UUID  LoadMetadata(const char* filePath)
+{
+
+}
 
 Shader ResourceManager::LoadShader(const char *vertexPath, const char *fragmentPath)
 {
@@ -11,9 +17,6 @@ Shader ResourceManager::LoadShader(const char *vertexPath, const char *fragmentP
     std::string vertexCode;
     std::string fragmentCode;
     std::string geometryCode;
-
-    std::ifstream fileTemp;
-    fileTemp.open(vertexPath);
 
     std::ifstream vertexShaderFile(vertexPath);
     std::ifstream fragmentShaderFile(fragmentPath);
@@ -31,4 +34,9 @@ Shader ResourceManager::LoadShader(const char *vertexPath, const char *fragmentP
     sh.Compile(vertexCode.c_str(), fragmentCode.c_str(), nullptr);
 
     return sh;
+}
+
+Material ResourceManager::LoadMaterial(const char *materialFilePath)
+{
+    return Material();
 }

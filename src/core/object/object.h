@@ -15,7 +15,7 @@
 class GLBObject
 {
 public:
-    _UUID id;
+    _UUID guid;
     GLBObject();
     std::vector<GLBComponent*> components;
     virtual void Update();
