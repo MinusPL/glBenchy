@@ -3,16 +3,17 @@
 
 #include "../../platform/platform.h"
 #include "../../handmademath/math.h"
+#include "../object/object.h"
 
 #include <string>
 
-class Shader
+class Shader : public Object
 {
 public:
 	//! ID of generated shader program
 	GLuint ID;
 	// Constructor
-	Shader() { }
+	Shader() : Object() { }
 	//! Sets the current shader as active
 	Shader  &Use();
 	//! Compiles the shader from given source code

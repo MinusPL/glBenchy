@@ -11,16 +11,23 @@ FetchContent_Declare(
   OVERRIDE_FIND_PACKAGE
 )
 
-
-
 FetchContent_Declare(
   assimp
   GIT_REPOSITORY https://github.com/assimp/assimp.git
   GIT_TAG v5.2.5 # Release 5.2.5
   OVERRIDE_FIND_PACKAGE
 )
+
+FetchContent_Declare(
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+  GIT_TAG yaml-cpp-0.6.3 # Release 0.6.3
+  OVERRIDE_FIND_PACKAGE
+)
+
 set(BUILD_SHARED_LIBS OFF)
 FetchContent_MakeAvailable(assimp)
+FetchContent_MakeAvailable(yaml-cpp)
 
 project(glBenchy)
 
@@ -85,6 +92,6 @@ set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURR
 set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/out/bin")
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(glBenchy glfw assimp ${OPENGL_LIBRARY})
+target_link_libraries(glBenchy glfw assimp yaml-cpp ${OPENGL_LIBRARY})
 
 #copy assets to bin out and copy built executable to bin.

@@ -7,6 +7,8 @@ layout (location = 1) in vec3 vColor;
   
 out vec4 vertexColor; // the input variable from the vertex shader (same name and same type)  
 
+uniform vec4 baseColor;
+
 void main()
 {
     gl_Position = vec4(vPos, 1.0); // see how we directly give a vec3 to vec4's constructor

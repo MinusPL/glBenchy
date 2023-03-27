@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <map>
 
-#include "../object/object.h"
+#include "../scene_object/scene_object.h"
 
 /**
  * Class representing scene inside GLBenchy application.

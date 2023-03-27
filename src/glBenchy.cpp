@@ -19,7 +19,7 @@
 #include <cmath>
 
 #include "global/globals.h"
-#include "core/object/object.h"
+#include "core/scene_object/scene_object.h"
 #include "global/glbtime.h"
 #include "editor/editor.h"
 #include "core/shader/shader.h"
