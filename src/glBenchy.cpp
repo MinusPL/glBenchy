@@ -29,8 +29,8 @@
 #include "components/mesh_renderer/mesh_renderer.h"
 
 //DEBUG
-Shader shp;
-Mesh m;
+Shader* shp;
+Mesh* m;
 
 
 GLFWwindow* winPtr = nullptr;
@@ -96,32 +96,65 @@ int main(int argc, char** argv)
 
     Scene* newSc = new Scene();
 
-    m.vertices.push_back({0.5f, -0.5f, 0.0f});
-    m.vertices.push_back({-0.5f, -0.5f, 0.0f});
-    m.vertices.push_back({0.5f, 0.5f, 0.0f});
-    m.vertices.push_back({-0.5f, 0.5f, 0.0f});
+    m = new Mesh();
 
-    m.colors.push_back({1.0f,0.0f,0.0f});
-    m.colors.push_back({0.0f,1.0f,0.0f});
-    m.colors.push_back({0.0f,0.0f,1.0f});
-    m.colors.push_back({1.0f,0.0f,1.0f});
+    m->vertices.push_back({0.5f, -0.5f, 0.0f});
+    m->vertices.push_back({-0.5f, -0.5f, 0.0f});
+    m->vertices.push_back({0.5f, 0.5f, 0.0f});
+    m->vertices.push_back({-0.5f, 0.5f, 0.0f});
 
-    m.indices.push_back(0);
-    m.indices.push_back(1);
-    m.indices.push_back(2);
-    m.indices.push_back(1);
-    m.indices.push_back(2);
-    m.indices.push_back(3);
+    m->colors.push_back({1.0f,0.0f,0.0f});
+    m->colors.push_back({0.0f,1.0f,0.0f});
+    m->colors.push_back({0.0f,0.0f,1.0f});
+    m->colors.push_back({1.0f,0.0f,1.0f});
 
-    m.CreateMesh();
+    m->indices.push_back(0);
+    m->indices.push_back(1);
+    m->indices.push_back(2);
+    m->indices.push_back(1);
+    m->indices.push_back(2);
+    m->indices.push_back(3);
+
+    m->CreateMesh();
 
     GLBObject* newObj = new GLBObject();
     MeshRendererComponent* mr = new MeshRendererComponent();
-    mr->m_Mesh = m;
+    mr->m_Mesh = *m;
     newObj->components.push_back(mr);
 
     newSc->hierarchy[0] = newObj;
+    SceneManager::scenes["scene1"] = newSc;
     SceneManager::activeScene = newSc;
+
+    m = new Mesh();
+
+    m->vertices.push_back({0.5f, -0.5f, 0.0f});
+    m->vertices.push_back({-0.5f, -0.5f, 0.0f});
+    m->vertices.push_back({0.5f, 0.5f, 0.0f});
+    m->vertices.push_back({-0.5f, 0.5f, 0.0f});
+
+    m->colors.push_back({0.0f,1.0f,0.0f});
+    m->colors.push_back({1.0f,0.0f,0.0f});
+    m->colors.push_back({0.0f,1.0f,1.0f});
+    m->colors.push_back({1.0f,1.0f,0.0f});
+
+    m->indices.push_back(0);
+    m->indices.push_back(1);
+    m->indices.push_back(2);
+    m->indices.push_back(1);
+    m->indices.push_back(2);
+    m->indices.push_back(3);
+
+    m->CreateMesh();
+
+    newSc = new Scene();
+    newObj = new GLBObject();
+    mr = new MeshRendererComponent();
+    mr->m_Mesh = *m;
+    newObj->components.push_back(mr);
+    newSc->hierarchy[0] = newObj;
+    SceneManager::scenes["scene2"] = newSc;
+
 
     shp = ResourceManager::LoadShader("../assets/shader/default.vs", "../assets/shader/default.fs");
 
@@ -138,6 +171,9 @@ int main(int argc, char** argv)
 }
 
 bool shaderChooserOpen = true;
+
+double changeTime = 5.0, changeTimer = changeTime;
+bool curScene = false;
 
 void mainLoop()
 {
@@ -161,9 +197,16 @@ void mainLoop()
 
     glClear(GL_COLOR_BUFFER_BIT);
     //move to material
-    shp.Use();
+    shp->Use();
     SceneManager::activeScene->Update();
     SceneManager::activeScene->Draw();
+
+    if(changeTimer <= 0.0)
+    {
+        SceneManager::activeScene = SceneManager::scenes[(curScene ^= true) ? "scene2" : "scene1"];
+        changeTimer = changeTime;
+    }
+
 
     //Render things?
     
@@ -172,5 +215,8 @@ void mainLoop()
 
     //Swap Buffers.
     glfwSwapBuffers(winPtr);
-    glfwPollEvents();  
+    glfwPollEvents();
+
+    if(changeTimer > 0.0)
+        changeTimer -= Time::deltaTime;
 }
