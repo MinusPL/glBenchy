@@ -21,9 +21,12 @@ public:
     float farClipPlane;
 
     UMat4 projection;
+    UMat4 view;
 
     CameraComponent();
     ~CameraComponent();
+
+    void Update() override;
 
     void SetCameraMode(bool orthographic);
 
