@@ -13,7 +13,7 @@ enum CameraType
 class CameraComponent : public GLBComponent
 {
 public:
-    bool otrhographic;
+    bool orthographic;
     UVec2 orthographicSize;
     float fov;
     float aspectRatio;
@@ -31,6 +31,7 @@ public:
     void SetCameraMode(bool orthographic);
 
     static CameraComponent* main;
+    static CameraComponent* current;
     
 };
 

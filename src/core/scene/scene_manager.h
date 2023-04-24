@@ -10,6 +10,7 @@ class SceneManager
 public:
     static std::unordered_map<std::string, Scene*> scenes;
     static Scene* activeScene;
+    static void SwitchScene(std::string name);
 
 };
 

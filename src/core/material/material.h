@@ -19,7 +19,7 @@ public:
     std::unordered_map<std::string, int> m_Ints;
     std::unordered_map<std::string, float> m_Floats;
     std::unordered_map<std::string, UVec4> m_Textures;
-    std::unordered_map<std::string, int> m_Colors;
+    std::unordered_map<std::string, UVec4> m_Colors;
 
     Material();
 

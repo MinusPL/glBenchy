@@ -27,6 +27,7 @@
 #include "core/resource/resource_manager.h"
 #include "core/scene/scene_manager.h"
 #include "components/mesh_renderer/mesh_renderer.h"
+#include "components/camera/camera.h"
 
 //DEBUG
 Shader* shp;
@@ -62,6 +63,7 @@ int main(int argc, char** argv)
     
     //This is always called - initialize everything
     glfwInit();
+    //glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
@@ -117,12 +119,27 @@ int main(int argc, char** argv)
 
     m->CreateMesh();
 
+
+    shp = ResourceManager::LoadShader("../assets/shader/default.vs", "../assets/shader/default.fs");
+
+
     GLBObject* newObj = new GLBObject();
     MeshRendererComponent* mr = new MeshRendererComponent();
+    Material* mat = new Material();
+    mat->m_Shader = shp;
+    mr->m_Material = *mat;
     mr->m_Mesh = *m;
-    newObj->components.push_back(mr);
+    newObj->AddComponent(mr);
 
     newSc->hierarchy[0] = newObj;
+
+    newObj = new GLBObject();
+    newObj->transform.Position(0.0f, 1.0f, -3.0f);
+    CameraComponent* camera = new CameraComponent();
+    newObj->AddComponent(camera);
+    newObj->tags.insert("MainCamera");
+    newSc->hierarchy[1] = newObj;
+
     SceneManager::scenes["scene1"] = newSc;
     SceneManager::activeScene = newSc;
 
@@ -150,13 +167,14 @@ int main(int argc, char** argv)
     newSc = new Scene();
     newObj = new GLBObject();
     mr = new MeshRendererComponent();
+    mr->m_Material = *mat;
     mr->m_Mesh = *m;
-    newObj->components.push_back(mr);
+    newObj->AddComponent(mr);
     newSc->hierarchy[0] = newObj;
     SceneManager::scenes["scene2"] = newSc;
 
 
-    shp = ResourceManager::LoadShader("../assets/shader/default.vs", "../assets/shader/default.fs");
+    SceneManager::SwitchScene("scene1");
 
 #ifdef EMSCRIPTEN
       emscripten_set_main_loop(mainLoop, 0, 1);
@@ -194,7 +212,6 @@ void mainLoop()
 
     //Finalize UI
     ImGui::Render();
-
     glClear(GL_COLOR_BUFFER_BIT);
     //move to material
     shp->Use();
@@ -203,7 +220,7 @@ void mainLoop()
 
     if(changeTimer <= 0.0)
     {
-        SceneManager::activeScene = SceneManager::scenes[(curScene ^= true) ? "scene2" : "scene1"];
+        SceneManager::SwitchScene((curScene ^= true) ? "scene2" : "scene1");
         changeTimer = changeTime;
     }
 

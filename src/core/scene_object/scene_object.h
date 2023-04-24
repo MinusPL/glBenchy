@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <unordered_set>
 
 #include "../../global/uuid.h"
 #include "../../components/component.h"
@@ -18,10 +19,24 @@ class GLBObject : public Object
 public:
     GLBObject();
     std::vector<GLBComponent*> components;
+    std::unordered_set<std::string> tags;
     virtual void Update();
     virtual void Draw();
     Transform transform;
     bool disabled;
+    void AddComponent(GLBComponent* componentPtr);
+
+    template <typename T> GLBComponent* GetComponent()
+    {
+        for(auto& component : components)
+        {
+            if(dynamic_cast<T*>(component) != nullptr)
+                return component;
+        }
+        return nullptr;
+    }
+
+    static GLBObject* FindWithTag(std::string tag);
 };
 
 #endif
