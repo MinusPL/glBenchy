@@ -107,62 +107,62 @@ Mesh* processMesh(aiMesh * mesh, const aiScene * scene)
 	}
 
 	//Process materials from loaded model
-	if (mesh->mMaterialIndex >= 0)
-	{
-		aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-		Material* mat = new Material();
-		aiColor3D difColor, ambColor, specColor;
-		float shininess = 0.0f;
-		material->Get(AI_MATKEY_COLOR_DIFFUSE, difColor);
-		material->Get(AI_MATKEY_COLOR_AMBIENT, ambColor);
-		material->Get(AI_MATKEY_COLOR_SPECULAR, specColor);
-		material->Get(AI_MATKEY_SHININESS, shininess);
-        material->
-		//mat->ambient = glm::vec3(ambColor.r, ambColor.g, ambColor.b);
-		mat->diffuse = glm::vec3(difColor.r, difColor.g, difColor.b);
-		//mat->diffuse = glm::vec3(1.0f,1.0f,1.0f);
+	// if (mesh->mMaterialIndex >= 0)
+	// {
+	// 	aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+	// 	Material* mat = new Material();
+	// 	aiColor3D difColor, ambColor, specColor;
+	// 	float shininess = 0.0f;
+	// 	material->Get(AI_MATKEY_COLOR_DIFFUSE, difColor);
+	// 	material->Get(AI_MATKEY_COLOR_AMBIENT, ambColor);
+	// 	material->Get(AI_MATKEY_COLOR_SPECULAR, specColor);
+	// 	material->Get(AI_MATKEY_SHININESS, shininess);
+    //     material->
+	// 	//mat->ambient = glm::vec3(ambColor.r, ambColor.g, ambColor.b);
+	// 	mat->diffuse = glm::vec3(difColor.r, difColor.g, difColor.b);
+	// 	//mat->diffuse = glm::vec3(1.0f,1.0f,1.0f);
 
 
-		mat->specular = glm::vec3(specColor.r, specColor.g, specColor.b);
-		mat->shiness = shininess;
-		if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-		{
-			aiString texString;
-			material->GetTexture(aiTextureType_DIFFUSE, 0, &texString);
-			if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
-			{
-				std::string texture_path = this->directory + "/" + texString.C_Str();
-				ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str());
-			}
-			mat->diffuseTexture = ResourceManager::GetTexture(texString.C_Str());
-		}
+	// 	mat->specular = glm::vec3(specColor.r, specColor.g, specColor.b);
+	// 	mat->shiness = shininess;
+	// 	if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+	// 	{
+	// 		aiString texString;
+	// 		material->GetTexture(aiTextureType_DIFFUSE, 0, &texString);
+	// 		if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
+	// 		{
+	// 			std::string texture_path = this->directory + "/" + texString.C_Str();
+	// 			ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str());
+	// 		}
+	// 		mat->diffuseTexture = ResourceManager::GetTexture(texString.C_Str());
+	// 	}
 
-		if (material->GetTextureCount(aiTextureType_NORMALS) > 0)
-		{
-			aiString texString;
-			material->GetTexture(aiTextureType_NORMALS, 0, &texString);
-			if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
-			{
-				std::string texture_path = this->directory + "/" + texString.C_Str();
-				ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str());
-			}
-			mat->normalMap = ResourceManager::GetTexture(texString.C_Str());
-		}
+	// 	if (material->GetTextureCount(aiTextureType_NORMALS) > 0)
+	// 	{
+	// 		aiString texString;
+	// 		material->GetTexture(aiTextureType_NORMALS, 0, &texString);
+	// 		if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
+	// 		{
+	// 			std::string texture_path = this->directory + "/" + texString.C_Str();
+	// 			ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str());
+	// 		}
+	// 		mat->normalMap = ResourceManager::GetTexture(texString.C_Str());
+	// 	}
 
-		if (material->GetTextureCount(aiTextureType_SPECULAR) > 0)
-		{
-			aiString texString;
-			material->GetTexture(aiTextureType_SPECULAR, 0, &texString);
-			if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
-			{
-				std::string texture_path = this->directory + "/" + texString.C_Str();
-				ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str());
-			}
-			mat->specularTexture = ResourceManager::GetTexture(texString.C_Str());
-		}
+	// 	if (material->GetTextureCount(aiTextureType_SPECULAR) > 0)
+	// 	{
+	// 		aiString texString;
+	// 		material->GetTexture(aiTextureType_SPECULAR, 0, &texString);
+	// 		if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
+	// 		{
+	// 			std::string texture_path = this->directory + "/" + texString.C_Str();
+	// 			ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str());
+	// 		}
+	// 		mat->specularTexture = ResourceManager::GetTexture(texString.C_Str());
+	// 	}
 
-		materials.push_back(mat);
-	}
+	// 	materials.push_back(mat);
+	// }
     return nullptr;
 }
 
@@ -177,8 +177,8 @@ void processNode(aiNode * node, const aiScene * scene, GLBObject* rootObject)
         // the node object only contains indices to index the actual objects in the scene. 
 		// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        std::cout << "MESH: " << mesh->mName.C_Str() << std::endl; 
-		meshes.push_back(processMesh(mesh, scene));
+        std::cout << "MESH: " << mesh->mName.C_Str() << " VERTS: " << mesh->mNumVertices << std::endl; 
+		//meshes.push_back(processMesh(mesh, scene));
 	}
 	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 	for (unsigned int i = 0; i < node->mNumChildren; i++)

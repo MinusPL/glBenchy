@@ -39,6 +39,8 @@ GLFWwindow* winPtr = nullptr;
 GLBObject* cameraObj;
 
 float delta = 1.f;
+float rotAngle = 0.0f;
+float rotDelta = 10.0f;
 
 static double lastFrameTime = 0.0;
 
@@ -84,7 +86,7 @@ int main(int argc, char** argv)
     int width, height;
     glfwGetFramebufferSize(winPtr, &width, &height);
     glViewport(0, 0, width, height);
-
+    glEnable(GL_DEPTH_TEST);  
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     IMGUI_CHECKVERSION();
@@ -104,22 +106,77 @@ int main(int argc, char** argv)
 
     m = new Mesh();
 
-    m->vertices.push_back({0.5f, -0.5f, 0.0f});
-    m->vertices.push_back({-0.5f, -0.5f, 0.0f});
-    m->vertices.push_back({0.5f, 0.5f, 0.0f});
-    m->vertices.push_back({-0.5f, 0.5f, 0.0f});
+    //Front face
+    m->vertices.push_back({0.5f, -0.5f, 0.5f});
+    m->vertices.push_back({-0.5f, -0.5f, 0.5f});
+    m->vertices.push_back({0.5f, 0.5f, 0.5f});
+    m->vertices.push_back({-0.5f, 0.5f, 0.5f});
+    //BackFace
+    m->vertices.push_back({0.5f, -0.5f, -0.5f});
+    m->vertices.push_back({-0.5f, -0.5f, -0.5f});
+    m->vertices.push_back({0.5f, 0.5f, -0.5f});
+    m->vertices.push_back({-0.5f, 0.5f, -0.5f});
+    
 
     m->colors.push_back({1.0f,0.0f,0.0f});
     m->colors.push_back({0.0f,1.0f,0.0f});
     m->colors.push_back({0.0f,0.0f,1.0f});
     m->colors.push_back({1.0f,0.0f,1.0f});
+    m->colors.push_back({1.0f,1.0f,0.0f});
+    m->colors.push_back({0.0f,1.0f,1.0f});
+    m->colors.push_back({0.5f,0.5f,1.0f});
+    m->colors.push_back({0.5f,1.0f,0.5f});
 
+    //Face
     m->indices.push_back(0);
     m->indices.push_back(1);
     m->indices.push_back(2);
+    //
     m->indices.push_back(1);
+    m->indices.push_back(3);
+    m->indices.push_back(2);
+    //Face
+    m->indices.push_back(0);
+    m->indices.push_back(6);
+    m->indices.push_back(4);
+    //
+    m->indices.push_back(0);
+    m->indices.push_back(2);
+    m->indices.push_back(6);
+    //Face
+    m->indices.push_back(0);
+    m->indices.push_back(4);
+    m->indices.push_back(5);
+    //
+    m->indices.push_back(0);
+    m->indices.push_back(5);
+    m->indices.push_back(1);
+    //Face
+    m->indices.push_back(1);
+    m->indices.push_back(5);
+    m->indices.push_back(3);
+    //
+    m->indices.push_back(3);
+    m->indices.push_back(5);
+    m->indices.push_back(7);
+    //Face
     m->indices.push_back(2);
     m->indices.push_back(3);
+    m->indices.push_back(6);
+    //
+    m->indices.push_back(3);
+    m->indices.push_back(7);
+    m->indices.push_back(6);
+    //Face
+    m->indices.push_back(4);
+    m->indices.push_back(6);
+    m->indices.push_back(7);
+    //
+    m->indices.push_back(4);
+    m->indices.push_back(7);
+    m->indices.push_back(5);
+    
+
 
     m->CreateMesh();
 
@@ -134,6 +191,7 @@ int main(int argc, char** argv)
     mat->m_Shader = shp;
     mr->m_Material = *mat;
     mr->m_Mesh = *m;
+    newObj->transform.Position({0.0f,0.0f,4.0f});
     newObj->AddComponent(mr);
     cameraObj = newObj; 
     newSc->hierarchy[0] = newObj;
@@ -144,7 +202,7 @@ int main(int argc, char** argv)
     newObj->AddComponent(camera);
     newObj->tags.insert("MainCamera");
     newSc->hierarchy[1] = newObj;
-    cameraObj = newObj; 
+    //cameraObj = newObj; 
     SceneManager::scenes["scene1"] = newSc;
     SceneManager::activeScene = newSc;
 
@@ -219,7 +277,7 @@ void mainLoop()
 
     //Finalize UI
     ImGui::Render();
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //move to material
     shp->Use();
     SceneManager::activeScene->Update();
@@ -236,6 +294,11 @@ void mainLoop()
 
     if(cameraObj->transform.Position().X > 3.0f) delta = -delta;
     if(cameraObj->transform.Position().X < -3.0f) delta = -delta;
+
+    rotAngle += rotDelta * Time::deltaTime;
+    if(rotAngle > 360.0f) rotAngle -= 360.0f;
+    cameraObj->transform.Rotation(QuaternionFromAxisAngle({0.3,0.6f,0.445f}, ToRadians(rotAngle)));
+
     //Render things?
     
     //Draw UI to framebuffer
