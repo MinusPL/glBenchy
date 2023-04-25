@@ -14,9 +14,9 @@ Transform::~Transform()
 void Transform::UpdateVectors()
 {
 	UMat4 rotMat = QuaternionToMat4(rotation);
-    forward = NormalizeVec3((rotMat * Vec4(1,0,0,1)).XYZ);
-    right = NormalizeVec3((rotMat * Vec4(0,1,0,1)).XYZ);
-    up = NormalizeVec3((rotMat * Vec4(0,0,1,1)).XYZ);
+    forward = NormalizeVec3((rotMat * Vec4(0,0,1,1)).XYZ);
+    right = NormalizeVec3((rotMat * Vec4(1,0,0,1)).XYZ);
+    up = NormalizeVec3((rotMat * Vec4(0,1,0,1)).XYZ);
 }
 
 UMat4 Transform::ApplyTransform()

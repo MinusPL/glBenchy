@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 3.21)
 
 include(FetchContent)
 
+# Options
+set(BENCHY_OS AUTO CACHE STRING "Select target OS API: WIN32, LINUX, WASM")
+set_property(
+    CACHE
+    BENCHY_OS PROPERTY
+    STRINGS AUTO WIN32 LINUX WASM
+)
 
 FetchContent_Declare(
   glfw3
@@ -25,9 +32,13 @@ FetchContent_Declare(
   OVERRIDE_FIND_PACKAGE
 )
 
+add_definitions(-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+set(YAML_CPP_BUILD_TESTS OFF)
+FetchContent_MakeAvailable(yaml-cpp)
 set(BUILD_SHARED_LIBS OFF)
 FetchContent_MakeAvailable(assimp)
-FetchContent_MakeAvailable(yaml-cpp)
+
+
 
 project(glBenchy)
 
@@ -45,14 +56,6 @@ set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-
-# Options
-set(BENCHY_OS AUTO CACHE STRING "Select target OS API: WIN32, LINUX, WASM")
-set_property(
-    CACHE
-    BENCHY_OS PROPERTY
-    STRINGS AUTO WIN32 LINUX WASM
-)
 
 if(WIN32)
     set(CMAKE_CXX_FLAGS "/W3 /EHsc")

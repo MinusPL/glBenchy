@@ -8,6 +8,7 @@
 #include "../material/material.h"
 #include "../object/object.h"
 #include "../../global/uuid.h"
+#include "../scene_object/scene_object.h"
 
 class ResourceManager
 {
@@ -15,6 +16,7 @@ public:
     static std::unordered_map<_UUID, Object*> resources;
     static Shader* LoadShader(const char* vertexPath, const char* fragmentPath);
     static Material* LoadMaterial(const char* materialFilePath);
+    static GLBObject* LoadModel(const char* modelFilePath);
     template <typename T>
     static inline T* GetResource(_UUID id)
     {

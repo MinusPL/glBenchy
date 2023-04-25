@@ -20,7 +20,7 @@ CameraComponent::CameraComponent()
 
 void CameraComponent::Update()
 {
-    view = LookAt(this->mp_Object->transform.Position(), this->mp_Object->transform.Forward(), this->mp_Object->transform.Up());
+    view = LookAt(this->mp_Object->transform.Position(), this->mp_Object->transform.Position() + this->mp_Object->transform.Forward(), this->mp_Object->transform.Up());
 }
 
 void CameraComponent::SetCameraMode(bool orthographic)

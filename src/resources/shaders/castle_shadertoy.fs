@@ -1,5 +1,8 @@
 #version 300 es
 
+//Created by sukupaper and acquired from shadertoy.com. Original name: Castle in the Sky ~
+//Link: https://www.shadertoy.com/view/WdXfRS
+
 precision mediump float;
 
 float t;

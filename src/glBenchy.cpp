@@ -36,6 +36,10 @@ Mesh* m;
 
 GLFWwindow* winPtr = nullptr;
 
+GLBObject* cameraObj;
+
+float delta = 1.f;
+
 static double lastFrameTime = 0.0;
 
 int screen[] = {960, 540};
@@ -121,6 +125,7 @@ int main(int argc, char** argv)
 
 
     shp = ResourceManager::LoadShader("../assets/shader/default.vs", "../assets/shader/default.fs");
+    ResourceManager::LoadModel("../assets/model/PC_A.fbx");
 
 
     GLBObject* newObj = new GLBObject();
@@ -130,20 +135,22 @@ int main(int argc, char** argv)
     mr->m_Material = *mat;
     mr->m_Mesh = *m;
     newObj->AddComponent(mr);
-
+    cameraObj = newObj; 
     newSc->hierarchy[0] = newObj;
 
     newObj = new GLBObject();
-    newObj->transform.Position(0.0f, 1.0f, -3.0f);
+    newObj->transform.Position(0.0f, 0.0f, -3.0f);
     CameraComponent* camera = new CameraComponent();
     newObj->AddComponent(camera);
     newObj->tags.insert("MainCamera");
     newSc->hierarchy[1] = newObj;
-
+    cameraObj = newObj; 
     SceneManager::scenes["scene1"] = newSc;
     SceneManager::activeScene = newSc;
 
     m = new Mesh();
+
+
 
     m->vertices.push_back({0.5f, -0.5f, 0.0f});
     m->vertices.push_back({-0.5f, -0.5f, 0.0f});
@@ -220,11 +227,15 @@ void mainLoop()
 
     if(changeTimer <= 0.0)
     {
-        SceneManager::SwitchScene((curScene ^= true) ? "scene2" : "scene1");
+        //SceneManager::SwitchScene((curScene ^= true) ? "scene2" : "scene1");
         changeTimer = changeTime;
     }
 
+    UVec3 deltaVec = {delta*Time::deltaTime,0.0f,0.0f};
+    cameraObj->transform.Position(cameraObj->transform.Position() + deltaVec);
 
+    if(cameraObj->transform.Position().X > 3.0f) delta = -delta;
+    if(cameraObj->transform.Position().X < -3.0f) delta = -delta;
     //Render things?
     
     //Draw UI to framebuffer
