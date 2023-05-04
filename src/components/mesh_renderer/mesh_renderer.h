@@ -9,8 +9,8 @@
 class MeshRendererComponent : public GLBComponent
 {
 public:
-    Mesh m_Mesh;
-    Material m_Material;
+    Mesh* m_Mesh;
+    Material* m_Material;
     void Draw() override;
 };
 

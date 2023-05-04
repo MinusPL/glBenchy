@@ -12,7 +12,12 @@
 
 #include <iostream>
 
+#include "../../components/mesh_renderer/mesh_renderer.h"
+
 std::unordered_map<_UUID, Object*> ResourceManager::resources = std::unordered_map<_UUID, Object*>();
+
+Shader* ResourceManager::defaultShader;
+Material* ResourceManager::defaultMaterial;
 
 static _UUID  LoadMetadata(const char* filePath)
 {
@@ -78,24 +83,31 @@ Material* ResourceManager::LoadMaterial(const char *materialFilePath)
     return new Material();
 }
 
-Mesh* processMesh(aiMesh * mesh, const aiScene * scene)
+Surface* processMesh(aiMesh * mesh, const aiScene * scene)
 {
-    Mesh* model_mesh = new Mesh();
+    Surface* surfPtr = new Surface();
+
 	// Walk through each of the mesh's vertices
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
-		model_mesh->vertices.push_back({mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z});
-		model_mesh->normals.push_back({mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
+		surfPtr->vertices.push_back({mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z});
+		surfPtr->normals.push_back({mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
+		//TODO Load proper colors from mesh!
+		if(mesh->mColors[0] != nullptr)
+			surfPtr->colors.push_back({mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b});
+		else
+			surfPtr->colors.push_back({1.0f,1.0f,1.0f});
         //mesh->mColors
 		if(mesh->mTextureCoords[0])
 		{
-			model_mesh->uvs.push_back({mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
+			surfPtr->uvs.push_back({mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
 		}
 		else
 		{
-			model_mesh->uvs.push_back({0.0f, 0.0f});
+			surfPtr->uvs.push_back({0.0f, 0.0f});
 		}
-		model_mesh->tangents.push_back({mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z});
+		if(mesh->mTangents != nullptr)
+			surfPtr->tangents.push_back({mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z});
 	}
 
 	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
@@ -103,10 +115,11 @@ Mesh* processMesh(aiMesh * mesh, const aiScene * scene)
 		aiFace face = mesh->mFaces[i];
 		// retrieve all indices of the face and store them in the indices vector
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
-			model_mesh->indices.push_back(face.mIndices[j]);
+			surfPtr->indices.push_back(face.mIndices[j]);
 	}
 
-	//Process materials from loaded model
+	// Process materials from loaded model
+	// Think about a way to translate stadnard material into PBR default material?
 	// if (mesh->mMaterialIndex >= 0)
 	// {
 	// 	aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
@@ -156,35 +169,44 @@ Mesh* processMesh(aiMesh * mesh, const aiScene * scene)
 	// 		if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
 	// 		{
 	// 			std::string texture_path = this->directory + "/" + texString.C_Str();
-	// 			ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str());
+	// 			ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str()
 	// 		}
 	// 		mat->specularTexture = ResourceManager::GetTexture(texString.C_Str());
 	// 	}
 
 	// 	materials.push_back(mat);
 	// }
-    return nullptr;
+    return surfPtr;
 }
 
 void processNode(aiNode * node, const aiScene * scene, GLBObject* rootObject)
 {
-	std::cout << "NODE: " << node->mName.C_Str() << std::endl;
+	// Node is an object on 3D scene
+	GLBObject* nodeObj = new GLBObject();
+	nodeObj->name = node->mName.C_Str();
     // process each mesh located at the current node
-	for (unsigned int i = 0; i < node->mNumMeshes; i++)
+	if(node->mNumMeshes > 0)
 	{
+		MeshRendererComponent* mrc = new MeshRendererComponent();
+		Mesh* meshResource = new Mesh();
+		for (unsigned int i = 0; i < node->mNumMeshes; i++)
+		{
+			// Add all meshes to object.
+			// the node object only contains indices to index the actual objects in the scene. 
+			// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
+			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+			meshResource->AddSurface(processMesh(mesh, scene));
+		}
+		mrc->m_Mesh = meshResource;
+		mrc->m_Material = ResourceManager::defaultMaterial;
+		nodeObj->AddComponent(mrc);
 
-		//Add all meshes to object.
-        // the node object only contains indices to index the actual objects in the scene. 
-		// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        std::cout << "MESH: " << mesh->mName.C_Str() << " VERTS: " << mesh->mNumVertices << std::endl; 
-		//meshes.push_back(processMesh(mesh, scene));
 	}
+	nodeObj->transform.parent = &rootObject->transform;
+	rootObject->children.push_back(nodeObj);
 	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
-	{
-		processNode(node->mChildren[i], scene, rootObject);
-	}
+		processNode(node->mChildren[i], scene, nodeObj);
 }
 
 GLBObject* ResourceManager::LoadModel(const char *modelFilePath)
@@ -201,6 +223,7 @@ GLBObject* ResourceManager::LoadModel(const char *modelFilePath)
 	}
 
     GLBObject* objectToReturn = new GLBObject();
+	objectToReturn->name = scene->mName.C_Str();
 
 	processNode(scene->mRootNode, scene, objectToReturn);
 

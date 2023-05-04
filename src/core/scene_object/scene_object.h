@@ -18,8 +18,10 @@ class GLBObject : public Object
 {
 public:
     GLBObject();
+    std::string name;
     std::vector<GLBComponent*> components;
     std::unordered_set<std::string> tags;
+    std::vector<GLBObject*> children;
     virtual void Update();
     virtual void Draw();
     Transform transform;

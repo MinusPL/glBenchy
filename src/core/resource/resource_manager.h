@@ -17,6 +17,8 @@ public:
     static Shader* LoadShader(const char* vertexPath, const char* fragmentPath);
     static Material* LoadMaterial(const char* materialFilePath);
     static GLBObject* LoadModel(const char* modelFilePath);
+    static Shader* defaultShader;
+    static Material* defaultMaterial;
     template <typename T>
     static inline T* GetResource(_UUID id)
     {

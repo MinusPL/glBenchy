@@ -17,6 +17,10 @@ public:
     std::map<uint64_t, GLBObject*> hierarchy;
     void Update();
     void Draw();
+    void AddObject(GLBObject* obj);
+    void AddChildrenOfObject(GLBObject* obj);
+private:
+    int objectCount = 0;
 };
 
 #endif

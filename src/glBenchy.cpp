@@ -31,22 +31,30 @@
 
 //DEBUG
 Shader* shp;
-Mesh* m;
-
 
 GLFWwindow* winPtr = nullptr;
 
 GLBObject* cameraObj;
+GLBObject* modelObj = nullptr;
 
-float delta = 1.f;
+float delta = 1.0f;
 float rotAngle = 0.0f;
+float rotAngle2 = 0.0f;
 float rotDelta = 10.0f;
+float rotDelta2 = 5.0f;
 
 static double lastFrameTime = 0.0;
 
 int screen[] = {960, 540};
 
 void mainLoop();
+
+void GLFWWindowSizeChanged(GLFWwindow* window, int width, int height)
+{
+    int vwidth, vheight;
+    glfwGetFramebufferSize(winPtr, &vwidth, &vheight);
+    glViewport(0, 0, vwidth, vheight);
+}
 
 int main(int argc, char** argv)
 {
@@ -78,6 +86,7 @@ int main(int argc, char** argv)
     winPtr = glfwCreateWindow(screen[0], screen[1], "GLBenchy", nullptr, nullptr);
     glfwSetWindowSizeLimits(winPtr, 640, 480, GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwMakeContextCurrent(winPtr);
+    glfwSetWindowSizeCallback(winPtr, GLFWWindowSizeChanged);
 
     #ifndef EMSCRIPTEN
     gladLoadGLES2Loader((GLADloadproc) glfwGetProcAddress);
@@ -104,142 +113,35 @@ int main(int argc, char** argv)
 
     Scene* newSc = new Scene();
 
-    m = new Mesh();
-
-    //Front face
-    m->vertices.push_back({0.5f, -0.5f, 0.5f});
-    m->vertices.push_back({-0.5f, -0.5f, 0.5f});
-    m->vertices.push_back({0.5f, 0.5f, 0.5f});
-    m->vertices.push_back({-0.5f, 0.5f, 0.5f});
-    //BackFace
-    m->vertices.push_back({0.5f, -0.5f, -0.5f});
-    m->vertices.push_back({-0.5f, -0.5f, -0.5f});
-    m->vertices.push_back({0.5f, 0.5f, -0.5f});
-    m->vertices.push_back({-0.5f, 0.5f, -0.5f});
-    
-
-    m->colors.push_back({1.0f,0.0f,0.0f});
-    m->colors.push_back({0.0f,1.0f,0.0f});
-    m->colors.push_back({0.0f,0.0f,1.0f});
-    m->colors.push_back({1.0f,0.0f,1.0f});
-    m->colors.push_back({1.0f,1.0f,0.0f});
-    m->colors.push_back({0.0f,1.0f,1.0f});
-    m->colors.push_back({0.5f,0.5f,1.0f});
-    m->colors.push_back({0.5f,1.0f,0.5f});
-
-    //Face
-    m->indices.push_back(0);
-    m->indices.push_back(1);
-    m->indices.push_back(2);
-    //
-    m->indices.push_back(1);
-    m->indices.push_back(3);
-    m->indices.push_back(2);
-    //Face
-    m->indices.push_back(0);
-    m->indices.push_back(6);
-    m->indices.push_back(4);
-    //
-    m->indices.push_back(0);
-    m->indices.push_back(2);
-    m->indices.push_back(6);
-    //Face
-    m->indices.push_back(0);
-    m->indices.push_back(4);
-    m->indices.push_back(5);
-    //
-    m->indices.push_back(0);
-    m->indices.push_back(5);
-    m->indices.push_back(1);
-    //Face
-    m->indices.push_back(1);
-    m->indices.push_back(5);
-    m->indices.push_back(3);
-    //
-    m->indices.push_back(3);
-    m->indices.push_back(5);
-    m->indices.push_back(7);
-    //Face
-    m->indices.push_back(2);
-    m->indices.push_back(3);
-    m->indices.push_back(6);
-    //
-    m->indices.push_back(3);
-    m->indices.push_back(7);
-    m->indices.push_back(6);
-    //Face
-    m->indices.push_back(4);
-    m->indices.push_back(6);
-    m->indices.push_back(7);
-    //
-    m->indices.push_back(4);
-    m->indices.push_back(7);
-    m->indices.push_back(5);
-    
-
-
-    m->CreateMesh();
-
-
+    //Load initial data, setup default resources.
     shp = ResourceManager::LoadShader("../assets/shader/default.vs", "../assets/shader/default.fs");
-    ResourceManager::LoadModel("../assets/model/PC_A.fbx");
-
-
-    GLBObject* newObj = new GLBObject();
-    MeshRendererComponent* mr = new MeshRendererComponent();
     Material* mat = new Material();
     mat->m_Shader = shp;
-    mr->m_Material = *mat;
-    mr->m_Mesh = *m;
+    ResourceManager::defaultMaterial = mat;
+    ResourceManager::defaultShader = shp;
+
+    //Load default resources!
+    modelObj = ResourceManager::LoadModel("../assets/model/PC_A.fbx");
+    GLBObject* newObj = ResourceManager::LoadModel("../assets/default/mesh/cube.fbx");
+
     newObj->transform.Position({0.0f,0.0f,4.0f});
-    newObj->AddComponent(mr);
     cameraObj = newObj; 
-    newSc->hierarchy[0] = newObj;
+    newSc->AddObject(newObj);
 
     newObj = new GLBObject();
-    newObj->transform.Position(0.0f, 0.0f, -3.0f);
+    newObj->transform.Position(0.0f, 1.0f, -1.0f);
     CameraComponent* camera = new CameraComponent();
     newObj->AddComponent(camera);
     newObj->tags.insert("MainCamera");
-    newSc->hierarchy[1] = newObj;
-    //cameraObj = newObj; 
+    newSc->AddObject(newObj);
+
+    modelObj->transform.Position({0.0f,0.0f, 2.0f});
+    newSc->AddObject(modelObj);
+
     SceneManager::scenes["scene1"] = newSc;
     SceneManager::activeScene = newSc;
 
-    m = new Mesh();
-
-
-
-    m->vertices.push_back({0.5f, -0.5f, 0.0f});
-    m->vertices.push_back({-0.5f, -0.5f, 0.0f});
-    m->vertices.push_back({0.5f, 0.5f, 0.0f});
-    m->vertices.push_back({-0.5f, 0.5f, 0.0f});
-
-    m->colors.push_back({0.0f,1.0f,0.0f});
-    m->colors.push_back({1.0f,0.0f,0.0f});
-    m->colors.push_back({0.0f,1.0f,1.0f});
-    m->colors.push_back({1.0f,1.0f,0.0f});
-
-    m->indices.push_back(0);
-    m->indices.push_back(1);
-    m->indices.push_back(2);
-    m->indices.push_back(1);
-    m->indices.push_back(2);
-    m->indices.push_back(3);
-
-    m->CreateMesh();
-
-    newSc = new Scene();
-    newObj = new GLBObject();
-    mr = new MeshRendererComponent();
-    mr->m_Material = *mat;
-    mr->m_Mesh = *m;
-    newObj->AddComponent(mr);
-    newSc->hierarchy[0] = newObj;
-    SceneManager::scenes["scene2"] = newSc;
-
-
-    SceneManager::SwitchScene("scene1");
+    lastFrameTime = Time::time;
 
 #ifdef EMSCRIPTEN
       emscripten_set_main_loop(mainLoop, 0, 1);
@@ -283,21 +185,19 @@ void mainLoop()
     SceneManager::activeScene->Update();
     SceneManager::activeScene->Draw();
 
-    if(changeTimer <= 0.0)
-    {
-        //SceneManager::SwitchScene((curScene ^= true) ? "scene2" : "scene1");
-        changeTimer = changeTime;
-    }
-
-    UVec3 deltaVec = {delta*Time::deltaTime,0.0f,0.0f};
+    UVec3 deltaVec = {delta*((float)Time::deltaTime),0.0f,0.0f};
     cameraObj->transform.Position(cameraObj->transform.Position() + deltaVec);
 
-    if(cameraObj->transform.Position().X > 3.0f) delta = -delta;
-    if(cameraObj->transform.Position().X < -3.0f) delta = -delta;
+    if(cameraObj->transform.Position().X > 3.0f && delta > 0.f) delta = -delta;
+    if(cameraObj->transform.Position().X < -3.0f && delta < 0.f) delta = -delta;
 
     rotAngle += rotDelta * Time::deltaTime;
     if(rotAngle > 360.0f) rotAngle -= 360.0f;
-    cameraObj->transform.Rotation(QuaternionFromAxisAngle({0.3,0.6f,0.445f}, ToRadians(rotAngle)));
+    cameraObj->transform.Rotation(QuaternionFromAxisAngle({0.0,0.0f,1.0f}, ToRadians(rotAngle)));
+
+    rotAngle2 += rotDelta2 * Time::deltaTime;
+    if(rotAngle2 > 360.0f) rotAngle2 -= 360.0f;
+    modelObj->transform.Rotation(QuaternionFromAxisAngle({1.0f,0.0f,0.0f}, ToRadians(-90.f)) * QuaternionFromAxisAngle({0.0,0.0f,1.0f}, ToRadians(rotAngle2)));
 
     //Render things?
     
@@ -307,7 +207,4 @@ void mainLoop()
     //Swap Buffers.
     glfwSwapBuffers(winPtr);
     glfwPollEvents();
-
-    if(changeTimer > 0.0)
-        changeTimer -= Time::deltaTime;
 }
