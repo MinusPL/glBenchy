@@ -12,6 +12,9 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/imgui_styles.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image/stb_image.h"
+
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -29,8 +32,6 @@
 #include "components/mesh_renderer/mesh_renderer.h"
 #include "components/camera/camera.h"
 
-//DEBUG
-Shader* shp;
 
 GLFWwindow* winPtr = nullptr;
 
@@ -101,6 +102,7 @@ int main(int argc, char** argv)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = NULL;
     SetDarkStyle();
 
     ImGui_ImplGlfw_InitForOpenGL(winPtr, true);
@@ -114,15 +116,17 @@ int main(int argc, char** argv)
     Scene* newSc = new Scene();
 
     //Load initial data, setup default resources.
-    shp = ResourceManager::LoadShader("../assets/shader/default.vs", "../assets/shader/default.fs");
-    Material* mat = new Material();
-    mat->m_Shader = shp;
-    ResourceManager::defaultMaterial = mat;
-    ResourceManager::defaultShader = shp;
+    ResourceManager::defaultShader = ResourceManager::LoadShader("../assets/shader/default.vs", "../assets/shader/default.fs");
+    ResourceManager::defaultMaterial = ResourceManager::LoadMaterial("../assets/material/default.mat");
 
     //Load default resources!
-    modelObj = ResourceManager::LoadModel("../assets/model/PC_A.fbx");
+    modelObj = ResourceManager::LoadModel("../assets/model/character/PC_A/PC_A.fbx");
+    ResourceManager::LoadTexture("../assets/model/character/PC_A/textures/_04.png");
     GLBObject* newObj = ResourceManager::LoadModel("../assets/default/mesh/cube.fbx");
+    Material* mat = ResourceManager::LoadMaterial("../assets/material/unlit_cube.mat");
+
+    MeshRendererComponent* mr = (MeshRendererComponent*)newObj->children[0]->children[0]->GetComponent<MeshRendererComponent>();
+    mr->m_Material = mat;
 
     newObj->transform.Position({0.0f,0.0f,4.0f});
     cameraObj = newObj; 
@@ -135,7 +139,7 @@ int main(int argc, char** argv)
     newObj->tags.insert("MainCamera");
     newSc->AddObject(newObj);
 
-    modelObj->transform.Position({0.0f,0.0f, 2.0f});
+    modelObj->transform.Position({0.0f,0.0f, 0.75f});
     newSc->AddObject(modelObj);
 
     SceneManager::scenes["scene1"] = newSc;
@@ -180,8 +184,7 @@ void mainLoop()
     //Finalize UI
     ImGui::Render();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //move to material
-    shp->Use();
+
     SceneManager::activeScene->Update();
     SceneManager::activeScene->Draw();
 
@@ -191,13 +194,13 @@ void mainLoop()
     if(cameraObj->transform.Position().X > 3.0f && delta > 0.f) delta = -delta;
     if(cameraObj->transform.Position().X < -3.0f && delta < 0.f) delta = -delta;
 
-    rotAngle += rotDelta * Time::deltaTime;
+    rotAngle += rotDelta * (float)Time::deltaTime;
     if(rotAngle > 360.0f) rotAngle -= 360.0f;
-    cameraObj->transform.Rotation(QuaternionFromAxisAngle({0.0,0.0f,1.0f}, ToRadians(rotAngle)));
+    cameraObj->transform.Rotation(HMM_QFromAxisAngle_RH({0.0,0.0f,1.0f}, HMM_AngleDeg(rotAngle)));
 
-    rotAngle2 += rotDelta2 * Time::deltaTime;
+    rotAngle2 += rotDelta2 * (float)Time::deltaTime;
     if(rotAngle2 > 360.0f) rotAngle2 -= 360.0f;
-    modelObj->transform.Rotation(QuaternionFromAxisAngle({1.0f,0.0f,0.0f}, ToRadians(-90.f)) * QuaternionFromAxisAngle({0.0,0.0f,1.0f}, ToRadians(rotAngle2)));
+    modelObj->transform.Rotation(HMM_QFromAxisAngle_RH({1.0f,0.0f,0.0f}, HMM_AngleDeg(-90.f)) * HMM_QFromAxisAngle_RH({0.0,0.0f,1.0f}, HMM_AngleDeg(rotAngle2)));
 
     //Render things?
     

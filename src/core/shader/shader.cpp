@@ -2,7 +2,8 @@
 
 #include <iostream>
 
-//TODO Change normal iostream to logger class!
+//DONTFIX: Change normal iostream to logger class!
+//No need for logger class in this program, after proper engine program development I'll add logger.
 
 Shader &Shader::Use()
 {
@@ -25,7 +26,7 @@ void Shader::Compile(const GLchar* vertexSource, const GLchar* fragmentSource, c
 	checkCompileErrors(sFragment, "FRAGMENT");
 	// If geometry shader source code is given, also compile geometry shader
 	
-    //TODO Do I need here geometry shading?
+    //QUESTION: Do I need here geometry shading?
     // if (geometrySource != nullptr)
 	// {
 	// 	gShader = glCreateShader(GL_GEOMETRY_SHADER);
@@ -109,6 +110,12 @@ void Shader::SetMatrix4(const GLchar *name, const UMat4 &matrix, GLboolean useSh
 // 	glUniformMatrix3fv(glGetUniformLocation(this->ID, name), 1, GL_FALSE, glm::value_ptr(matrix));
 // }
 
+void Shader::SetTexture(int texID, const GLchar* name, Texture *texPtr)
+{
+	glActiveTexture(GL_TEXTURE0 + texID);
+	glBindTexture(GL_TEXTURE_2D, texPtr->id);
+	glUniform1i(glGetUniformLocation(this->ID, texPtr->name.c_str()), texID);
+}
 
 void Shader::checkCompileErrors(GLuint object, std::string type)
 {

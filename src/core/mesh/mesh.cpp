@@ -22,7 +22,7 @@ UVec3 Surface::TangentFromIndices(GLuint a, GLuint b, GLuint c)
 	tangent.X = f * (deltaUV2.Y * edge1.X - deltaUV1.Y * edge2.X);
 	tangent.Y = f * (deltaUV2.Y * edge1.Y - deltaUV1.Y * edge2.Y);
 	tangent.Z = f * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z);
-	tangent = Normalize(tangent);
+	tangent = HMM_Norm(tangent);
 
 	return tangent;
 }
@@ -32,7 +32,7 @@ void Mesh::Draw()
 	for(auto surf : m_Surfaces)
 	{
 		glBindVertexArray(surf->VAO);
-		glDrawElements(surf->vertexFlag, surf->indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(surf->vertexFlag, surf->indices.size(), GL_UNSIGNED_INT, (void*)0);
 		glBindVertexArray(0);
 	}
 }
@@ -119,7 +119,7 @@ void Mesh::RecalculateNormals()
 		//normals.clear();
 		surf->normals.resize(surf->vertices.size());
 
-		for (size_t i = 0; i < surf->indices.size() / 3; i++)
+		for (GLuint i = 0; i < surf->indices.size() / 3; i++)
 		{
 			GLuint triangleIndex = i * 3;
 			GLuint pointA = surf->indices[triangleIndex];
@@ -135,12 +135,12 @@ void Mesh::RecalculateNormals()
 
 		for (size_t i = 0; i < surf->normals.size(); i++)
 		{
-			surf->normals[i] = Normalize(surf->normals[i]);
+			surf->normals[i] = HMM_Norm(surf->normals[i]);
 		}
 
 		if (surf->uvs.size() > 0) {
 			surf->tangents.resize(surf->vertices.size());
-			for (size_t i = 0; i < surf->indices.size() / 3; i++)
+			for (GLuint i = 0; i < surf->indices.size() / 3; i++)
 			{
 				GLuint triangleIndex = i * 3;
 				GLuint pointA = surf->indices[triangleIndex];

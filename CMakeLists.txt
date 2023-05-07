@@ -92,6 +92,7 @@ set_target_properties(glBenchy PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}")
 set_target_properties(glBenchy PROPERTIES DEBUG_OUTPUT_NAME "${CMAKE_PROJECT_NAME}_d")
 
 set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/out/bin")
+set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/out/bin")
 set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/out/bin")
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")

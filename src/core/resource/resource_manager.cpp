@@ -12,6 +12,8 @@
 
 #include <iostream>
 
+#include "../../stb_image/stb_image.h"
+
 #include "../../components/mesh_renderer/mesh_renderer.h"
 
 std::unordered_map<_UUID, Object*> ResourceManager::resources = std::unordered_map<_UUID, Object*>();
@@ -43,6 +45,11 @@ static _UUID  LoadMetadata(const char* filePath)
     return uuidData;
 }
 
+static std::map<std::string, std::string> LoadModelMetadata(const char* filePath)
+{
+	//Load material overrides!
+}
+
 Shader* ResourceManager::LoadShader(const char *vertexPath, const char *fragmentPath)
 {
     _UUID objectID = LoadMetadata(fragmentPath);
@@ -72,15 +79,59 @@ Shader* ResourceManager::LoadShader(const char *vertexPath, const char *fragment
     return sh;
 }
 
+//Insert helper functions for yaml processing?
+
+
 Material* ResourceManager::LoadMaterial(const char *materialFilePath)
 {
     _UUID objectID = LoadMetadata(materialFilePath);
     Material* mat = new Material();
     mat->guid = objectID;
-    YAML::Node meta = YAML::LoadFile(materialFilePath);
-    mat->m_Name = meta["m_Name"].as<std::string>();
-    
-    return new Material();
+    YAML::Node fileData = YAML::LoadFile(materialFilePath);
+
+	if(fileData["Material"] == nullptr) return nullptr;
+	
+	YAML::Node materialData = fileData["Material"];
+
+	for(YAML::const_iterator it=materialData.begin(); it!=materialData.end(); it++) 
+	{
+		if(it->first.as<std::string>() == "m_Colors")
+		{
+			YAML::Node colors = it->second;
+			for(YAML::const_iterator cit=colors.begin(); cit!=colors.end(); cit++) 
+			{
+				std::string colName = cit->first.as<std::string>().substr(1,cit->first.as<std::string>().length()-1);
+				UVec4 colVal = {cit->second["r"].as<float>(),cit->second["g"].as<float>(),cit->second["b"].as<float>(),cit->second["a"].as<float>()};
+				mat->m_Colors[colName] = colVal;
+			}
+		}
+
+		if(it->first.as<std::string>() == "m_Textures")
+		{
+			YAML::Node textures = it->second;
+			for(YAML::const_iterator cit=textures.begin(); cit!=textures.end(); cit++) 
+			{
+				std::string texName = cit->first.as<std::string>().substr(1,cit->first.as<std::string>().length()-1);
+				std::string filePath = "../assets" + cit->second["m_TextureFile"].as<std::string>();
+				Texture* tex = ResourceManager::LoadTexture(filePath.c_str());
+				tex->name = texName;
+				mat->m_Textures[texName] = tex;
+			}
+		}
+
+	}
+
+	if(materialData["m_ShaderFile"] != nullptr)
+	{
+		std::string vertSource = "../assets" + materialData["m_ShaderFile"].as<std::string>() + ".vs";
+		std::string fragSource = "../assets" + materialData["m_ShaderFile"].as<std::string>() + ".fs";
+		mat->m_Shader = ResourceManager::LoadShader(vertSource.c_str(), fragSource.c_str());
+	}
+	else
+		mat->m_Shader = ResourceManager::defaultShader;
+
+    mat->m_Name = materialData["m_Name"].as<std::string>();
+    return mat;
 }
 
 Surface* processMesh(aiMesh * mesh, const aiScene * scene)
@@ -92,12 +143,10 @@ Surface* processMesh(aiMesh * mesh, const aiScene * scene)
 	{
 		surfPtr->vertices.push_back({mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z});
 		surfPtr->normals.push_back({mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
-		//TODO Load proper colors from mesh!
 		if(mesh->mColors[0] != nullptr)
 			surfPtr->colors.push_back({mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b});
 		else
 			surfPtr->colors.push_back({1.0f,1.0f,1.0f});
-        //mesh->mColors
 		if(mesh->mTextureCoords[0])
 		{
 			surfPtr->uvs.push_back({mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
@@ -118,7 +167,9 @@ Surface* processMesh(aiMesh * mesh, const aiScene * scene)
 			surfPtr->indices.push_back(face.mIndices[j]);
 	}
 
-	// Process materials from loaded model
+	// Process materials from loaded model - create basic material based on default one!
+	// TODO: consider loading default materials settings, or substitue this with default material instance.
+	
 	// Think about a way to translate stadnard material into PBR default material?
 	// if (mesh->mMaterialIndex >= 0)
 	// {
@@ -228,4 +279,35 @@ GLBObject* ResourceManager::LoadModel(const char *modelFilePath)
 	processNode(scene->mRootNode, scene, objectToReturn);
 
     return objectToReturn;
+}
+
+Texture *ResourceManager::LoadTexture(const char *textureFilePath)
+{
+    _UUID objectID = LoadMetadata(textureFilePath);
+	Texture* textureObj = new Texture();
+
+	int w,h,nc;
+	unsigned char *data = stbi_load(textureFilePath, &w, &h, &nc, 0);
+
+	glActiveTexture(GL_TEXTURE0);
+
+	//Since this is only OpenGL I can do that
+	glBindTexture(GL_TEXTURE_2D, textureObj->id);
+	//Make sure we only load RGB or RGBA images!
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, nc == 3 ? GL_RGB : GL_RGBA, w, h, 0, nc == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	textureObj->width = w;
+	textureObj->height = h;
+
+	stbi_image_free(data);
+	return textureObj;
 }

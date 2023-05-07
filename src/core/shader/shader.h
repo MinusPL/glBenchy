@@ -4,6 +4,7 @@
 #include "../../platform/platform.h"
 #include "../../handmademath/math.h"
 #include "../object/object.h"
+#include "../texture/texture.h"
 
 #include <string>
 
@@ -129,6 +130,8 @@ public:
 	@param useShader - boolean that tells if shader should be set as current active shader.
 	*/
 	//void	SetMatrix3(const GLchar *name, const UMat3 &matrix, GLboolean useShader = false);
+
+	void SetTexture(int texID, const GLchar* name,  Texture* texPtr);
 
 private:
 	// Checks if compilation or linking failed and if so, print the error logs

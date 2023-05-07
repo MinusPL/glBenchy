@@ -44,7 +44,7 @@ public:
 
     void Position(float x, float y, float z)
     {
-		position = Vec3(x, y, z);
+		position = HMM_V3(x, y, z);
 		UpdateVectors();
 	}
 

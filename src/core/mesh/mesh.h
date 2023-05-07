@@ -6,6 +6,7 @@
 
 #include <vector>
 
+//INFO: This is implementation for OpenGL. In other circumstances there would be additional abstraction layer needed for multiple rendering backends.
 struct Surface
 {
 	GLenum vertexFlag = GL_TRIANGLES;
@@ -29,7 +30,7 @@ struct Surface
 
 	inline UVec3 NormalFromIndices(GLuint a, GLuint b, GLuint c)
     {
-        return Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]);
+        return HMM_Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]);
     }
 
 	UVec3 TangentFromIndices(GLuint a, GLuint b, GLuint c);
