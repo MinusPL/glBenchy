@@ -21,5 +21,8 @@ const float PI = 3.14159265359;
 
 void main()
 {
-    FragColor = vec4(texture(Albedo, TexCoord).rgb * baseColor.rgb, 1.0);
+    vec4 texColor = texture(Albedo, TexCoord);
+    if(texColor.a < 0.1)
+        discard;
+    FragColor = vec4(texColor.rgb * baseColor.rgb, 1.0);
 }

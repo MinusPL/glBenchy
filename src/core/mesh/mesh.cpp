@@ -27,16 +27,6 @@ UVec3 Surface::TangentFromIndices(GLuint a, GLuint b, GLuint c)
 	return tangent;
 }
 
-void Mesh::Draw()
-{
-	for(auto surf : m_Surfaces)
-	{
-		glBindVertexArray(surf->VAO);
-		glDrawElements(surf->vertexFlag, surf->indices.size(), GL_UNSIGNED_INT, (void*)0);
-		glBindVertexArray(0);
-	}
-}
-
 void Mesh::AddSurface(Surface* surf)
 {
 	if(surf == nullptr) return;

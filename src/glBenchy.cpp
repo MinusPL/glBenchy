@@ -82,6 +82,7 @@ int main(int argc, char** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    glfwWindowHint(GLFW_SAMPLES, 4);
     
 
     winPtr = glfwCreateWindow(screen[0], screen[1], "GLBenchy", nullptr, nullptr);
@@ -96,7 +97,8 @@ int main(int argc, char** argv)
     int width, height;
     glfwGetFramebufferSize(winPtr, &width, &height);
     glViewport(0, 0, width, height);
-    glEnable(GL_DEPTH_TEST);  
+    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_MULTISAMPLE_ARB);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     IMGUI_CHECKVERSION();
@@ -126,7 +128,7 @@ int main(int argc, char** argv)
     Material* mat = ResourceManager::LoadMaterial("../assets/material/unlit_cube.mat");
 
     MeshRendererComponent* mr = (MeshRendererComponent*)newObj->children[0]->children[0]->GetComponent<MeshRendererComponent>();
-    mr->m_Material = mat;
+    mr->m_Materials[0] = *mat;
 
     newObj->transform.Position({0.0f,0.0f,4.0f});
     cameraObj = newObj; 

@@ -43,8 +43,6 @@ public:
 	//Use this vector to store all surfaces in mesh (vertex subgroups divided by materials). Then MeshRenderer component will assign proper material to each surface element.
 	std::vector<Surface*> m_Surfaces;
 
-	void Draw();
-
 	void AddSurface(Surface* surf);
 
 	void RecalculateNormals();

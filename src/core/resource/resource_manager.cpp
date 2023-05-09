@@ -16,6 +16,11 @@
 
 #include "../../components/mesh_renderer/mesh_renderer.h"
 
+struct ModelMetadata
+{
+	std::map<std::string, std::string> materialOverrides;
+};
+
 std::unordered_map<_UUID, Object*> ResourceManager::resources = std::unordered_map<_UUID, Object*>();
 
 Shader* ResourceManager::defaultShader;
@@ -43,11 +48,6 @@ static _UUID  LoadMetadata(const char* filePath)
         outMetaFile.close();
     }
     return uuidData;
-}
-
-static std::map<std::string, std::string> LoadModelMetadata(const char* filePath)
-{
-	//Load material overrides!
 }
 
 Shader* ResourceManager::LoadShader(const char *vertexPath, const char *fragmentPath)
@@ -166,71 +166,10 @@ Surface* processMesh(aiMesh * mesh, const aiScene * scene)
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
 			surfPtr->indices.push_back(face.mIndices[j]);
 	}
-
-	// Process materials from loaded model - create basic material based on default one!
-	// TODO: consider loading default materials settings, or substitue this with default material instance.
-	
-	// Think about a way to translate stadnard material into PBR default material?
-	// if (mesh->mMaterialIndex >= 0)
-	// {
-	// 	aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-	// 	Material* mat = new Material();
-	// 	aiColor3D difColor, ambColor, specColor;
-	// 	float shininess = 0.0f;
-	// 	material->Get(AI_MATKEY_COLOR_DIFFUSE, difColor);
-	// 	material->Get(AI_MATKEY_COLOR_AMBIENT, ambColor);
-	// 	material->Get(AI_MATKEY_COLOR_SPECULAR, specColor);
-	// 	material->Get(AI_MATKEY_SHININESS, shininess);
-    //     material->
-	// 	//mat->ambient = glm::vec3(ambColor.r, ambColor.g, ambColor.b);
-	// 	mat->diffuse = glm::vec3(difColor.r, difColor.g, difColor.b);
-	// 	//mat->diffuse = glm::vec3(1.0f,1.0f,1.0f);
-
-
-	// 	mat->specular = glm::vec3(specColor.r, specColor.g, specColor.b);
-	// 	mat->shiness = shininess;
-	// 	if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-	// 	{
-	// 		aiString texString;
-	// 		material->GetTexture(aiTextureType_DIFFUSE, 0, &texString);
-	// 		if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
-	// 		{
-	// 			std::string texture_path = this->directory + "/" + texString.C_Str();
-	// 			ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str());
-	// 		}
-	// 		mat->diffuseTexture = ResourceManager::GetTexture(texString.C_Str());
-	// 	}
-
-	// 	if (material->GetTextureCount(aiTextureType_NORMALS) > 0)
-	// 	{
-	// 		aiString texString;
-	// 		material->GetTexture(aiTextureType_NORMALS, 0, &texString);
-	// 		if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
-	// 		{
-	// 			std::string texture_path = this->directory + "/" + texString.C_Str();
-	// 			ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str());
-	// 		}
-	// 		mat->normalMap = ResourceManager::GetTexture(texString.C_Str());
-	// 	}
-
-	// 	if (material->GetTextureCount(aiTextureType_SPECULAR) > 0)
-	// 	{
-	// 		aiString texString;
-	// 		material->GetTexture(aiTextureType_SPECULAR, 0, &texString);
-	// 		if (ResourceManager::GetTexture(texString.C_Str()) == nullptr)
-	// 		{
-	// 			std::string texture_path = this->directory + "/" + texString.C_Str();
-	// 			ResourceManager::LoadTexture(texture_path.c_str(), texString.C_Str()
-	// 		}
-	// 		mat->specularTexture = ResourceManager::GetTexture(texString.C_Str());
-	// 	}
-
-	// 	materials.push_back(mat);
-	// }
     return surfPtr;
 }
 
-void processNode(aiNode * node, const aiScene * scene, GLBObject* rootObject)
+void processNode(aiNode * node, const aiScene * scene, GLBObject* rootObject, ModelMetadata& modelData)
 {
 	// Node is an object on 3D scene
 	GLBObject* nodeObj = new GLBObject();
@@ -247,22 +186,58 @@ void processNode(aiNode * node, const aiScene * scene, GLBObject* rootObject)
 			// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			meshResource->AddSurface(processMesh(mesh, scene));
+			//Add material per mesh!
+			
+			if(mesh->mMaterialIndex >= 0)
+			{
+				aiMaterial *importedMaterial = scene->mMaterials[mesh->mMaterialIndex];
+				Material newMaterial = *ResourceManager::defaultMaterial;
+				newMaterial.m_Name = importedMaterial->GetName().C_Str();
+
+				if(modelData.materialOverrides.contains(importedMaterial->GetName().C_Str()))
+				{
+					if(modelData.materialOverrides.at(importedMaterial->GetName().C_Str()).length() > 0)
+					{
+						std::string matPath = "../assets" + modelData.materialOverrides.at(importedMaterial->GetName().C_Str());
+						Material* matPtr = ResourceManager::LoadMaterial(matPath.c_str());
+						newMaterial = *matPtr;
+						delete matPtr;
+					}
+				}
+				else
+					modelData.materialOverrides[importedMaterial->GetName().C_Str()] = "";
+
+				mrc->m_Materials.push_back(newMaterial);
+			}
+			else
+				mrc->m_Materials.push_back(*ResourceManager::defaultMaterial);
 		}
 		mrc->m_Mesh = meshResource;
-		mrc->m_Material = ResourceManager::defaultMaterial;
 		nodeObj->AddComponent(mrc);
-
 	}
+
 	nodeObj->transform.parent = &rootObject->transform;
 	rootObject->children.push_back(nodeObj);
 	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
-		processNode(node->mChildren[i], scene, nodeObj);
+		processNode(node->mChildren[i], scene, nodeObj, modelData);
 }
 
 GLBObject* ResourceManager::LoadModel(const char *modelFilePath)
 {
-    _UUID objectID = LoadMetadata(modelFilePath);
+    bool shouldSaveMetadata = true;
+	ModelMetadata mData;
+	std::filesystem::path p(std::string(modelFilePath)+".meta");
+    if(std::filesystem::exists(p))
+    {
+		shouldSaveMetadata = false;
+		YAML::Node fileData = YAML::LoadFile(p.string());
+		YAML::Node materialData = fileData["Materials"];
+		for(YAML::const_iterator it=materialData.begin(); it!=materialData.end(); it++) 
+		{
+			mData.materialOverrides[it->first.as<std::string>()] = it->second.as<std::string>();
+		}
+	}
     //Time for Assimp processing!
     Assimp::Importer import;
 	const aiScene *scene = import.ReadFile(modelFilePath, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -276,7 +251,28 @@ GLBObject* ResourceManager::LoadModel(const char *modelFilePath)
     GLBObject* objectToReturn = new GLBObject();
 	objectToReturn->name = scene->mName.C_Str();
 
-	processNode(scene->mRootNode, scene, objectToReturn);
+	processNode(scene->mRootNode, scene, objectToReturn, mData);
+
+	if(shouldSaveMetadata)
+	{
+        _UUID uuidData = UUIDGenerator::GetUUID();
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "guid";
+        out << YAML::Value << UUIDGenerator::UUIDToString(uuidData);
+		out << YAML::Key << "Materials";
+		out << YAML::Value << YAML::BeginMap;
+		for(auto matOverride : mData.materialOverrides)
+		{
+        	out << YAML::Key << matOverride.first;
+			out << YAML::Value << matOverride.second;
+		}
+		out<< YAML::EndMap;
+        out << YAML::EndMap;
+        std::ofstream outMetaFile(p);
+        outMetaFile << out.c_str();
+        outMetaFile.close();
+	}
 
     return objectToReturn;
 }
@@ -284,6 +280,7 @@ GLBObject* ResourceManager::LoadModel(const char *modelFilePath)
 Texture *ResourceManager::LoadTexture(const char *textureFilePath)
 {
     _UUID objectID = LoadMetadata(textureFilePath);
+	
 	Texture* textureObj = new Texture();
 
 	int w,h,nc;
@@ -295,8 +292,8 @@ Texture *ResourceManager::LoadTexture(const char *textureFilePath)
 	glBindTexture(GL_TEXTURE_2D, textureObj->id);
 	//Make sure we only load RGB or RGBA images!
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, nc == 4 ? GL_CLAMP_TO_EDGE :GL_REPEAT);	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, nc ==  4 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

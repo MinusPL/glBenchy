@@ -10,7 +10,7 @@ class MeshRendererComponent : public GLBComponent
 {
 public:
     Mesh* m_Mesh;
-    Material* m_Material;
+    std::vector<Material> m_Materials;
     void Draw() override;
 };
 

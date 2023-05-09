@@ -1,1 +1,21 @@
-guid: 00ccf9b5-8148-4822-ab39-7baa7e437dc6
+guid: f0828dbd-44ac-4945-8670-7748c7f122f2
+Materials:
+  N00_000_00_Body_00_SKIN (Instance): /model/character/PC_A/materials/N00_000_00_Body_00_SKIN.mat
+  N00_000_00_EyeHighlight_00_EYE (Instance): /model/character/PC_A/materials/N00_000_00_EyeHighlight_00_EYE.mat
+  N00_000_00_EyeIris_00_EYE (Instance): /model/character/PC_A/materials/N00_000_00_EyeIris_00_EYE.mat
+  N00_000_00_EyeWhite_00_EYE (Instance): /model/character/PC_A/materials/N00_000_00_EyeWhite_00_EYE.mat
+  N00_000_00_FaceBrow_00_FACE (Instance): /model/character/PC_A/materials/N00_000_00_FaceBrow_00_FACE.mat
+  N00_000_00_FaceEyeline_00_FACE (Instance): /model/character/PC_A/materials/N00_000_00_FaceEyeline_00_FACE.mat
+  N00_000_00_FaceMouth_00_FACE (Instance): /model/character/PC_A/materials/N00_000_00_FaceMouth_00_FACE.mat
+  N00_000_00_Face_00_SKIN (Instance): /model/character/PC_A/materials/N00_000_00_Face_00_SKIN.mat
+  N00_000_00_HairBack_00_HAIR (Instance): /model/character/PC_A/materials/N00_000_00_HairBack_00_HAIR.mat
+  N00_000_Hair_00_HAIR (Instance): /model/character/PC_A/materials/N00_000_Hair_00_HAIR.mat
+  N00_002_04_Tops_01_CLOTH (Instance): /model/character/PC_A/materials/N00_002_04_Tops_01_CLOTH.mat
+  N00_005_01_Tops_01_CLOTH (Instance): /model/character/PC_A/materials/N00_005_01_Tops_01_CLOTH.mat
+  N00_007_01_Accessory_Tie_01_CLOTH_01 (Instance): /model/character/PC_A/materials/N00_007_01_Accessory_Tie_01_CLOTH_01.mat
+  N00_007_01_Accessory_Tie_01_CLOTH_02 (Instance): /model/character/PC_A/materials/N00_007_01_Accessory_Tie_01_CLOTH_02.mat
+  N00_007_03_Tops_01_CLOTH_01 (Instance): /model/character/PC_A/materials/N00_007_03_Tops_01_CLOTH_01.mat
+  N00_007_03_Tops_01_CLOTH_02 (Instance): /model/character/PC_A/materials/N00_007_03_Tops_01_CLOTH_02.mat
+  N00_007_03_Tops_01_CLOTH_03 (Instance): /model/character/PC_A/materials/N00_007_03_Tops_01_CLOTH_03.mat
+  N00_008_01_Shoes_01_CLOTH (Instance): /model/character/PC_A/materials/N00_008_01_Shoes_01_CLOTH.mat
+  N00_010_01_Onepiece_00_CLOTH (Instance): /model/character/PC_A/materials/N00_010_01_Onepiece_00_CLOTH.mat
