@@ -59,17 +59,17 @@ GLBObject *ObjLoader::CreateArm()
     accPtr->_joints.push_back(armJointPtr);
 
     armJointPtr = new ArmJoint();
-    armJointPtr->rotationAxis = {1.0f,0.0f,0.0f};
+    armJointPtr->rotationAxis = {0.0f,0.0f,1.0f};
     lowerArmPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
 
     armJointPtr = new ArmJoint();
-    armJointPtr->rotationAxis = {1.0f,0.0f,0.0f};
+    armJointPtr->rotationAxis = {0.0f,0.0f,1.0f};
     upperArmPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
 
     armJointPtr = new ArmJoint();
-    armJointPtr->rotationAxis = {1.0f,0.0f,0.0f};
+    armJointPtr->rotationAxis = {0.0f,0.0f,1.0f};
     faceAttachPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
 

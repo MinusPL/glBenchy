@@ -38,6 +38,8 @@
 #include "components/light/light.h"
 #include "components/arm_controller/armcontroller.h"
 
+#include "core/debug/debug.h"
+
 
 GLFWwindow* winPtr = nullptr;
 
@@ -127,6 +129,7 @@ int main(int argc, char** argv)
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
     printf("Entering main loop!\n");
+
     //Loop!
     //Set time offset
     Time::time = glfwGetTime();
@@ -194,6 +197,8 @@ int main(int argc, char** argv)
 
     lastFrameTime = Time::time;
 
+    Debug::InitDebug();
+
 #ifdef EMSCRIPTEN
       emscripten_set_main_loop(mainLoop, 0, 1);
 #else
@@ -235,6 +240,8 @@ void mainLoop()
 
     SceneManager::activeScene->Update();
     SceneManager::activeScene->Draw();
+
+    //Debug::DrawLine({0.0f,0.0f,0.0f}, {0.0f,1.0f,0.0f});
 
     UVec3 deltaVec = {delta*((float)Time::deltaTime),0.0f,0.0f};
     cameraObj->transform.Position(cameraObj->transform.Position() + deltaVec);
