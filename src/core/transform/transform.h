@@ -36,6 +36,12 @@ public:
 
     inline UVec3 Position() { return position; }
 
+    void Scale(UVec3 newScale)
+    {
+        scale = newScale;
+        UpdateVectors();
+    }
+
     void Position(UVec3 newPos)
     {
         position = newPos;
@@ -49,6 +55,7 @@ public:
 	}
 
     inline UQuat Rotation() { return rotation; }
+    inline UVec3 RotationEulerAngles() { return QuatToEuler(rotation); }
 
     void Rotation(UQuat newRotation)
     {
@@ -58,7 +65,20 @@ public:
 
     void Rotation(float x, float y, float z)
     {
-        throw std::runtime_error("Not implemented");
+        rotation = QuatFromEuler(x,y,z);
+        UpdateVectors();
+    }
+
+    void Rotation(UVec3 rotAngles)
+    {
+        rotation = QuatFromEuler(HMM_AngleDeg(rotAngles.X), HMM_AngleDeg(rotAngles.Y), HMM_AngleDeg(rotAngles.Z));
+        UpdateVectors();
+    }
+
+    void Rotate(float x, float y, float z)
+    {
+        rotation = rotation * QuatFromEuler(HMM_AngleDeg(x),HMM_AngleDeg(y),HMM_AngleDeg(z));
+        UpdateVectors();
     }
 
     UMat4 ApplyTransform();

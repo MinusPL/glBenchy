@@ -1,6 +1,9 @@
 #include "mesh_renderer.h"
 #include "../../core/scene_object/scene_object.h"
 #include "../camera/camera.h"
+#include "../light/light.h"
+
+#include "../../global/glbtime.h"
 
 void MeshRendererComponent::Draw()
 {
@@ -29,10 +32,29 @@ void MeshRendererComponent::Draw()
             //Camera
             m_Material->m_Shader->SetVector3f("WorldSpaceCameraPos", CameraComponent::current->mp_Object->transform.Position());
             //Lightning
-            m_Material->m_Shader->SetVector3f("mainLightDir", {1.2f, 8.5f, 10.0f});
+
+            m_Material->m_Shader->SetFloat("Shininess", 256.0f);
+            m_Material->m_Shader->SetInteger("UsedLightCount", (int)LightComponent::lights.size());
+
+            m_Material->m_Shader->SetFloat("_SinTime", HMM_SINF((float)Time::time));
+
+            for(int i = 0; i < LightComponent::lights.size(); i++)
+            {
+                std::string posStr = std::format("lights[{}].position", i);
+                std::string constantStr = std::format("lights[{}].constant", i);
+                std::string linearStr = std::format("lights[{}].linear", i);
+                std::string quadraticStr = std::format("lights[{}].quadratic", i);
+                std::string colorStr = std::format("lights[{}].color", i);
+
+                m_Material->m_Shader->SetVector4f(posStr.c_str(), LightComponent::lights[i]->position); 
+                m_Material->m_Shader->SetFloat(constantStr.c_str(), LightComponent::lights[i]->constant); 
+                m_Material->m_Shader->SetFloat(linearStr.c_str(), LightComponent::lights[i]->linear); 
+                m_Material->m_Shader->SetFloat(quadraticStr.c_str(), LightComponent::lights[i]->quadratic); 
+                m_Material->m_Shader->SetVector4f(colorStr.c_str(), LightComponent::lights[i]->color); 
+            }
             //Draw GL object
             glBindVertexArray(surf->VAO);
-            glDrawElements(surf->vertexFlag, surf->indices.size(), GL_UNSIGNED_INT, (void*)0);
+            glDrawElements(surf->vertexFlag, (int)surf->indices.size(), GL_UNSIGNED_INT, (void*)0);
             glBindVertexArray(0);
         }
     }

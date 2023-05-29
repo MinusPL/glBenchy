@@ -61,6 +61,8 @@ if(WIN32)
     set(CMAKE_CXX_FLAGS "/W3 /EHsc")
 endif()
 
+add_compile_definitions(_USE_MATH_DEFINES)
+
 add_subdirectory(src)
 
 if (EMSCRIPTEN)

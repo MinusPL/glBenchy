@@ -169,11 +169,23 @@ Surface* processMesh(aiMesh * mesh, const aiScene * scene)
     return surfPtr;
 }
 
-void processNode(aiNode * node, const aiScene * scene, GLBObject* rootObject, ModelMetadata& modelData)
+void processNode(aiNode * node, const aiScene * scene, GLBObject** rootObject, ModelMetadata& modelData)
 {
+	if(node->mParent == nullptr && node->mNumChildren < 2 && std::string(node->mName.C_Str()).find("RootNode") != std::string::npos)
+	{
+		processNode(node->mChildren[0], scene, rootObject, modelData);
+		return;
+	}
 	// Node is an object on 3D scene
 	GLBObject* nodeObj = new GLBObject();
 	nodeObj->name = node->mName.C_Str();
+	aiVector3D nodePos, nodeScale;
+	aiQuaternion nodeRot;
+	node->mTransformation.Decompose(nodeScale, nodeRot, nodePos);
+	//Apply Transformation
+	nodeObj->transform.Position({nodePos.x, nodePos.y, nodePos.z});
+	nodeObj->transform.Rotation({nodeRot.x, nodeRot.y, nodeRot.z, nodeRot.w});
+	nodeObj->transform.Scale({nodeScale.x, nodeScale.y, nodeScale.z});
     // process each mesh located at the current node
 	if(node->mNumMeshes > 0)
 	{
@@ -193,6 +205,9 @@ void processNode(aiNode * node, const aiScene * scene, GLBObject* rootObject, Mo
 				aiMaterial *importedMaterial = scene->mMaterials[mesh->mMaterialIndex];
 				Material newMaterial = *ResourceManager::defaultMaterial;
 				newMaterial.m_Name = importedMaterial->GetName().C_Str();
+				aiColor3D diffColor;
+				importedMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffColor);
+				newMaterial.m_Colors["baseColor"] = {diffColor.r, diffColor.g, diffColor.b, 1.0f};
 
 				if(modelData.materialOverrides.contains(importedMaterial->GetName().C_Str()))
 				{
@@ -205,8 +220,10 @@ void processNode(aiNode * node, const aiScene * scene, GLBObject* rootObject, Mo
 					}
 				}
 				else
+				{
 					modelData.materialOverrides[importedMaterial->GetName().C_Str()] = "";
 
+				}
 				mrc->m_Materials.push_back(newMaterial);
 			}
 			else
@@ -216,13 +233,18 @@ void processNode(aiNode * node, const aiScene * scene, GLBObject* rootObject, Mo
 		nodeObj->AddComponent(mrc);
 	}
 
-	nodeObj->transform.parent = &rootObject->transform;
-	rootObject->children.push_back(nodeObj);
+	if(*rootObject != nullptr)
+	{
+		nodeObj->transform.parent = &((*rootObject)->transform);
+		(*rootObject)->children.push_back(nodeObj);
+	}
+	else *rootObject = nodeObj;
 	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
-		processNode(node->mChildren[i], scene, nodeObj, modelData);
+		processNode(node->mChildren[i], scene, &nodeObj, modelData);
 }
 
+//TODO: Fix two additional nodes when loading model.
 GLBObject* ResourceManager::LoadModel(const char *modelFilePath)
 {
     bool shouldSaveMetadata = true;
@@ -248,10 +270,9 @@ GLBObject* ResourceManager::LoadModel(const char *modelFilePath)
 		return nullptr;
 	}
 
-    GLBObject* objectToReturn = new GLBObject();
-	objectToReturn->name = scene->mName.C_Str();
+	GLBObject* objectToReturn = nullptr;
 
-	processNode(scene->mRootNode, scene, objectToReturn, mData);
+	processNode(scene->mRootNode, scene, &objectToReturn, mData);
 
 	if(shouldSaveMetadata)
 	{
@@ -292,7 +313,7 @@ Texture *ResourceManager::LoadTexture(const char *textureFilePath)
 	glBindTexture(GL_TEXTURE_2D, textureObj->id);
 	//Make sure we only load RGB or RGBA images!
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, nc == 4 ? GL_CLAMP_TO_EDGE :GL_REPEAT);	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, nc == 4 ? GL_CLAMP_TO_EDGE : GL_REPEAT);	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, nc ==  4 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

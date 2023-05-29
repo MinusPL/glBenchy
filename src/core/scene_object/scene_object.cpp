@@ -14,7 +14,14 @@ GLBObject::GLBObject() :
 void GLBObject::Update()
 {
     for(auto& component : components)
+    {
+        if(!component->hasStarted)
+        {
+            component->Start();
+            component->hasStarted = true;
+        }
         component->Update();
+    }
 }
 
 //should it be here?

@@ -17,12 +17,14 @@ uniform vec4 baseColor;
 uniform sampler2D Normal;
 uniform sampler2D Albedo;
 
+uniform float _SinTime;
+
 const float PI = 3.14159265359;
 
 void main()
 {
     vec4 texColor = texture(Albedo, TexCoord);
-    if(texColor.a < 0.1)
+    if(texColor.a < 0.5)
         discard;
     FragColor = vec4(texColor.rgb * baseColor.rgb, 1.0);
 }
