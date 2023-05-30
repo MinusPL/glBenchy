@@ -6,8 +6,8 @@
 GLBObject *ObjLoader::CreateArm()
 {
     GLBObject* armObj = ResourceManager::LoadModel("../assets/model/environment/factory/arm_uni.fbx");
-    armObj->transform.Rotate(0.0f, 180.0f, 0.0f);
-    //armObj->transform.Rotation(0.0f,0.0f,0.0f);
+    //armObj->transform.Rotate(0.0f, 180.0f, 0.0f);
+    //armObj->transform.Rotation(0.0f,90.0f,0.0f);
     //Add controller!
     //This WILL be messy.
     
@@ -59,17 +59,17 @@ GLBObject *ObjLoader::CreateArm()
     accPtr->_joints.push_back(armJointPtr);
 
     armJointPtr = new ArmJoint();
-    armJointPtr->rotationAxis = {0.0f,0.0f,1.0f};
+    armJointPtr->rotationAxis = {1.0f,0.0f,0.0f};
     lowerArmPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
 
     armJointPtr = new ArmJoint();
-    armJointPtr->rotationAxis = {0.0f,0.0f,1.0f};
+    armJointPtr->rotationAxis = {1.0f,0.0f,0.0f};
     upperArmPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
 
     armJointPtr = new ArmJoint();
-    armJointPtr->rotationAxis = {0.0f,0.0f,1.0f};
+    armJointPtr->rotationAxis = {1.0f,0.0f,0.0f};
     faceAttachPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
 

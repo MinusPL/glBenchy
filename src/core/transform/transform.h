@@ -54,6 +54,16 @@ public:
 		UpdateVectors();
 	}
 
+    UVec3 WorldPosition()
+    {
+        if(parent != nullptr)
+        {
+            return position + parent->WorldPosition();
+        }
+        else
+            return position;
+    }
+
     inline UQuat Rotation() { return rotation; }
     inline UVec3 RotationEulerAngles() { return QuatToEuler(rotation); }
 
@@ -65,7 +75,7 @@ public:
 
     void Rotation(float x, float y, float z)
     {
-        rotation = QuatFromEuler(x,y,z);
+        rotation = QuatFromEuler(HMM_AngleDeg(x),HMM_AngleDeg(y),HMM_AngleDeg(z));
         UpdateVectors();
     }
 

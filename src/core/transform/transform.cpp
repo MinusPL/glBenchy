@@ -14,9 +14,9 @@ Transform::~Transform()
 void Transform::UpdateVectors()
 {
 	UMat4 rotMat = HMM_QToM4(rotation);
-    forward = HMM_Norm((rotMat * HMM_V4(0,0,1,1)).XYZ);
-    right = HMM_Norm((rotMat * HMM_V4(1,0,0,1)).XYZ);
-    up = HMM_Norm((rotMat * HMM_V4(0,1,0,1)).XYZ);
+    forward = HMM_Norm(-rotMat.Columns[2].XYZ);
+    right = HMM_Norm(rotMat.Columns[0].XYZ);
+    up = HMM_Norm(rotMat.Columns[1].XYZ);
 }
 
 UMat4 Transform::ApplyTransform()

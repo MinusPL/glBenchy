@@ -46,7 +46,7 @@ GLFWwindow* winPtr = nullptr;
 GLBObject* cameraObj;
 GLBObject* modelObj = nullptr;
 
-float delta = 1.0f;
+float delta = 5.0f;
 float rotAngle = 0.0f;
 float rotAngle2 = 0.0f;
 float rotDelta = 10.0f;
@@ -68,6 +68,8 @@ void GLFWWindowSizeChanged(GLFWwindow* window, int width, int height)
     glfwGetFramebufferSize(winPtr, &vwidth, &vheight);
     glViewport(0, 0, vwidth, vheight);
 }
+
+void KeyInputs(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 int main(int argc, char** argv)
 {
@@ -103,6 +105,7 @@ int main(int argc, char** argv)
     glfwMakeContextCurrent(winPtr);
     glfwSwapInterval(0);
     glfwSetWindowSizeCallback(winPtr, GLFWWindowSizeChanged);
+    glfwSetKeyCallback(winPtr, KeyInputs);
 
     #ifndef EMSCRIPTEN
     gladLoadGLES2Loader((GLADloadproc) glfwGetProcAddress);
@@ -152,29 +155,33 @@ int main(int argc, char** argv)
     //armObj->transform.Scale({0.01f,0.01f,0.01f});
     //Add specific object loaders!
     armObj2 = ObjLoader::CreateArm();
-    armObj2->transform.Scale({0.25f,0.25f,0.25f});
+    //armObj2->transform.Scale({0.25f,0.25f,0.25f});
 
     ((ArmControllerComponent*)armObj2->GetComponent<ArmControllerComponent>())->_targetPtr = newObj;
 
-    armObj->transform.Position({-2.0f,0.0f,3.0f});
-    armObj2->transform.Position({2.0f,0.0f,3.0f});
+    armObj->transform.Position({-4.0f,0.0f,-3.0f});
+    armObj2->transform.Position({0.0f,0.0f,-20.0f});
     //armObj2->transform.Rotation(HMM_QFromAxisAngle_RH({0.0,1.0f,0.0f}, HMM_AngleDeg(180.0f)));
 
     MeshRendererComponent* mr = (MeshRendererComponent*)newObj->GetComponent<MeshRendererComponent>();
     mr->m_Materials[0] = *mat;
 
-    newObj->transform.Position({0.0f,0.0f,3.0f});
+    newObj->transform.Position({0.0f,6.0f,-20.0f});
     cameraObj = newObj; 
     newSc->AddObject(newObj);
 
     newObj = new GLBObject();
-    newObj->transform.Position(0.0f, 1.0f, -1.0f);
+    newObj->transform.Position(0.0f, 1.0f, 3.0f);
+
+    //newObj->transform.Rotation(HMM_QFromAxisAngle_RH({1.0f,0.0f,0.0f}, HMM_AngleDeg(90.0f)));
+    //newObj->transform.Rotation(90.0f,0.0f,0.0f);
+    
     CameraComponent* camera = new CameraComponent();
     newObj->AddComponent(camera);
     newObj->tags.insert("MainCamera");
     newSc->AddObject(newObj);
 
-    modelObj->transform.Position({0.0f,0.0f, 0.75f});
+    modelObj->transform.Position({0.0f,0.0f, -0.75f});
     //newSc->AddObject(modelObj);
 
     newObj = new GLBObject();
@@ -243,11 +250,9 @@ void mainLoop()
 
     //Debug::DrawLine({0.0f,0.0f,0.0f}, {0.0f,1.0f,0.0f});
 
-    UVec3 deltaVec = {delta*((float)Time::deltaTime),0.0f,0.0f};
-    cameraObj->transform.Position(cameraObj->transform.Position() + deltaVec);
-
-    if(cameraObj->transform.Position().X > 3.0f && delta > 0.f) delta = -delta;
-    if(cameraObj->transform.Position().X < -3.0f && delta < 0.f) delta = -delta;
+    double r = 10.0 * cos(Time::time*2.0);
+    UVec3 newPos1 = {(float)(0.0 + (r * cos(Time::time))),6.0f * sin(Time::time/2.0),(float)(-20.0 + (r * sin(Time::time)))};
+    cameraObj->transform.Position(newPos1);
 
     rotAngle += rotDelta * (float)Time::deltaTime;
     if(rotAngle > 360.0f) rotAngle -= 360.0f;
@@ -266,7 +271,6 @@ void mainLoop()
         rotAngles.Y -= 360.0f;
         armObj->transform.Rotation(rotAngles);
     }
-    //armObj2->transform.Rotation(HMM_QFromAxisAngle_RH({0.0f,1.0f,0.0f}, HMM_AngleDeg(rotAngle3-180.0f)));
 
     //Render things?
     
@@ -276,4 +280,10 @@ void mainLoop()
     //Swap Buffers.
     glfwSwapBuffers(winPtr);
     glfwPollEvents();
+}
+
+void KeyInputs(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if(key == GLFW_KEY_A && action == GLFW_PRESS) cameraObj->transform.Position(cameraObj->transform.Position() + HMM_V3(-1.0f,0.0f,0.0f));
+    if(key == GLFW_KEY_D && action == GLFW_PRESS) cameraObj->transform.Position(cameraObj->transform.Position() + HMM_V3(1.0f,0.0f,0.0f));
 }

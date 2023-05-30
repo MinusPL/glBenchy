@@ -41,37 +41,35 @@ static inline  UQuat QuatFromEuler(UVec3 angles)
 {
     // Abbreviations for the various angular functions
 
-    double cr = cos(angles.Z * 0.5);
-    double sr = sin(angles.Z * 0.5);
-    double cp = cos(angles.X * 0.5);
-    double sp = sin(angles.X * 0.5);
-    double cy = cos(angles.Y * 0.5);
-    double sy = sin(angles.Y * 0.5);
+    float s1 = sin(angles.Y*0.5f);
+    float c1 = cos(angles.Y*0.5f);
+    float s2 = sin(angles.X*0.5f);
+    float c2 = cos(angles.X*0.5f);
+    float s3 = sin(angles.Z*0.5f);
+    float c3 = cos(angles.Z*0.5f);
 
     UQuat q;
-    q.W = (float)(cr * cp * cy + sr * sp * sy);
-    q.X = (float)(sr * cp * cy - cr * sp * sy);
-    q.Y = (float)(cr * sp * cy + sr * cp * sy);
-    q.Z = (float)(cr * cp * sy - sr * sp * cy);
+    q.W = (float)(s1 * s2 * s3 + c1 * c2 * c3);
+    q.X = (float)(s1 * s3 * c2 + s2 * c1 * c3);
+    q.Y = (float)(-s1 * c2 * c3 - s2 * s3 * c1);
+    q.Z = (float)(s1 * s2 * c3 + s3 * c1 * c2);
     return q;
 }
 
 static inline UQuat QuatFromEuler(float X, float Y, float Z)
 {
-    // Abbreviations for the various angular functions
-
-    double cr = cos(Z * 0.5);
-    double sr = sin(Z * 0.5);
-    double cp = cos(X * 0.5);
-    double sp = sin(X * 0.5);
-    double cy = cos(Y * 0.5);
-    double sy = sin(Y * 0.5);
+    float s1 = sin(Y*0.5f);
+    float c1 = cos(Y*0.5f);
+    float s2 = sin(X*0.5f);
+    float c2 = cos(X*0.5f);
+    float s3 = sin(Z*0.5f);
+    float c3 = cos(Z*0.5f);
 
     UQuat q;
-    q.W = (float)(cr * cp * cy + sr * sp * sy);
-    q.X = (float)(sr * cp * cy - cr * sp * sy);
-    q.Y = (float)(cr * sp * cy + sr * cp * sy);
-    q.Z = (float)(cr * cp * sy - sr * sp * cy);
+    q.W = (float)(s1 * s2 * s3 + c1 * c2 * c3);
+    q.X = (float)(s1 * s3 * c2 + s2 * c1 * c3);
+    q.Y = (float)(-s1 * c2 * c3 - s2 * s3 * c1);
+    q.Z = (float)(s1 * s2 * c3 + s3 * c1 * c2);
     return q;
 }
 
@@ -95,6 +93,10 @@ static inline UVec3 QMulV3(UQuat rotation, UVec3 point)
     res.Y = (xy + wz) * point.X + (1.f - (xx + zz)) * point.Y + (yz - wx) * point.Z;
     res.Z = (xz - wy) * point.X + (yz + wx) * point.Y + (1.f - (xx + yy)) * point.Z;
     return res;
+}
+static inline HMM_Quat &operator*=(HMM_Quat& lhs, HMM_Quat rhs)
+{
+    return lhs = lhs * rhs;
 }
 
 
