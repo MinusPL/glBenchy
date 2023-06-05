@@ -1,7 +1,7 @@
 #include "material.h"
 
 Material::Material() :
-    m_Name(""), m_Translucent(false), Object()
+    m_Name(""), m_Translucent(false), m_TextureScale({1.0f,1.0f}), Object()
 {
 
 }

@@ -1,6 +1,6 @@
 #include "mesh.h"
 
-UVec3 Surface::TangentFromIndices(GLuint a, GLuint b, GLuint c)
+void Surface::TangentFromIndices(GLuint a, GLuint b, GLuint c, UVec3& tangent)
 {
 	UVec3 vertA = vertices[a];
 	UVec3 vertB = vertices[b];
@@ -18,13 +18,10 @@ UVec3 Surface::TangentFromIndices(GLuint a, GLuint b, GLuint c)
 
 	float f = 1.0f / (deltaUV1.X * deltaUV2.Y - deltaUV2.X * deltaUV1.Y);
 
-	UVec3 tangent;
 	tangent.X = f * (deltaUV2.Y * edge1.X - deltaUV1.Y * edge2.X);
 	tangent.Y = f * (deltaUV2.Y * edge1.Y - deltaUV1.Y * edge2.Y);
 	tangent.Z = f * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z);
 	tangent = HMM_Norm(tangent);
-
-	return tangent;
 }
 
 void Mesh::AddSurface(Surface* surf)
@@ -85,7 +82,7 @@ void Mesh::AddSurface(Surface* surf)
 
 	if (surf->tangents.size() != 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, surf->VBOTangent);
-		glBufferData(GL_ARRAY_BUFFER, surf->tangents.size() * sizeof(UVec2), &surf->tangents[0], GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, surf->tangents.size() * sizeof(UVec3), &surf->tangents[0], GL_DYNAMIC_DRAW);
 
 		glEnableVertexAttribArray(4);
 		glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
@@ -96,6 +93,31 @@ void Mesh::AddSurface(Surface* surf)
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, surf->indices.size() * sizeof(GLuint), &(surf->indices[0]), GL_DYNAMIC_DRAW);
 	}
 	glBindVertexArray(0);
+}
+
+void Surface::CalculateTangents()
+{
+	if (this->vertexFlag != GL_TRIANGLES) {
+		throw "Cannot calculate normals with given flag!";
+	}
+
+	if (this->uvs.size() > 0) {
+		this->tangents.resize(this->vertices.size());
+		for (GLuint i = 0; i < this->indices.size() / 3; i++)
+		{
+			GLuint triangleIndex = i * 3;
+			GLuint pointA = this->indices[triangleIndex];
+			GLuint pointB = this->indices[triangleIndex + 1];
+			GLuint pointC = this->indices[triangleIndex + 2];
+
+			UVec3 tangent;
+			this->TangentFromIndices(pointA, pointB, pointC, tangent);
+
+			this->tangents[pointA] = tangent;
+			this->tangents[pointB] = tangent;
+			this->tangents[pointC] = tangent;
+		}
+	}
 }
 
 void Mesh::RecalculateNormals()
@@ -136,13 +158,13 @@ void Mesh::RecalculateNormals()
 				GLuint pointA = surf->indices[triangleIndex];
 				GLuint pointB = surf->indices[triangleIndex + 1];
 				GLuint pointC = surf->indices[triangleIndex + 2];
-
-				UVec3 tangent = surf->TangentFromIndices(pointA, pointB, pointC);
+				
+				UVec3 tangent;
+				surf->TangentFromIndices(pointA, pointB, pointC, tangent);
 
 				surf->tangents[pointA] = tangent;
 				surf->tangents[pointB] = tangent;
 				surf->tangents[pointC] = tangent;
-
 			}
 		}
 	}

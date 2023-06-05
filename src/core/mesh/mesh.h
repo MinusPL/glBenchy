@@ -33,7 +33,9 @@ struct Surface
         return HMM_Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]);
     }
 
-	UVec3 TangentFromIndices(GLuint a, GLuint b, GLuint c);
+	void TangentFromIndices(GLuint a, GLuint b, GLuint c, UVec3& tangent);
+
+	void CalculateTangents();
 };
 
 
@@ -46,6 +48,7 @@ public:
 	void AddSurface(Surface* surf);
 
 	void RecalculateNormals();
+
 
 	//! Destructor.
 	~Mesh();

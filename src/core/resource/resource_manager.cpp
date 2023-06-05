@@ -135,6 +135,14 @@ Material* ResourceManager::LoadMaterial(const char *materialFilePath)
 	else
 		mat->m_Translucent = false;
 
+	if(materialData["m_TextureScale"] != nullptr)
+	{
+		UVec2 scaleValue = {materialData["m_TextureScale"]["x"].as<float>(), materialData["m_TextureScale"]["y"].as<float>()};
+		mat->m_TextureScale = scaleValue;
+	}
+	else
+		mat->m_TextureScale = {1.0f,1.0f};
+
     mat->m_Name = materialData["m_Name"].as<std::string>();
     return mat;
 }
@@ -171,6 +179,10 @@ Surface* processMesh(aiMesh * mesh, const aiScene * scene)
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
 			surfPtr->indices.push_back(face.mIndices[j]);
 	}
+
+	if(surfPtr->tangents.size() == 0)
+		surfPtr->CalculateTangents();
+
     return surfPtr;
 }
 
@@ -267,7 +279,7 @@ GLBObject* ResourceManager::LoadModel(const char *modelFilePath)
 	}
     //Time for Assimp processing!
     Assimp::Importer import;
-	const aiScene *scene = import.ReadFile(modelFilePath, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene *scene = import.ReadFile(modelFilePath, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{

@@ -37,6 +37,7 @@ void MeshRendererComponent::Draw()
             m_Material->m_Shader->SetInteger("UsedLightCount", (int)LightComponent::lights.size());
 
             m_Material->m_Shader->SetFloat("_SinTime", HMM_SINF((float)Time::time));
+            m_Material->m_Shader->SetVector2f("textureScaling", m_Material->m_TextureScale);
 
             for(int i = 0; i < LightComponent::lights.size(); i++)
             {

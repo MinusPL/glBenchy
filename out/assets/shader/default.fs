@@ -19,11 +19,11 @@ struct Light
 };  
 #define LIGHTS_COUNT 8
 
-
 in vec3 FragPos;  
 in vec2 TexCoord;
 in vec3 WorldNormal;
 in vec4 vertexColor;
+in mat3 TBN;
 
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 BrightColor;
@@ -51,7 +51,9 @@ float exposure = 1.0;
 
 void main()
 {
-    vec3 norm = normalize(WorldNormal);
+    vec3 normal = texture(Normal, TexCoord).rgb;
+    normal = normal * 2.0 - 1.0;  
+    vec3 norm = normalize(TBN * normal);
     vec3 viewDir = normalize(WorldSpaceCameraPos - FragPos);
     vec3 lightning = vec3(0.0);
     
@@ -62,13 +64,17 @@ void main()
         result += ShadeLight(lights[i], norm, FragPos, viewDir);
     }
     //vec3 mapped = vec3(1.0) - exp(-result * exposure);
+    
     FragColor = vec4(result, 1.0);
+    //FragColor = vec4(normal, 1.0);
 
     float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     if(brightness > 0.8)
         BrightColor = vec4(FragColor.rgb, 1.0);
     else
         BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+    
+    //BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
 
 vec3 ShadeLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -94,7 +100,7 @@ vec3 ShadeLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
     }
     else //Non-directional light, ATTENUATE!
     {
-        vec3 lightDir = normalize(light.position.xyz - fragPos);
+        vec3 lightDir = TBN * normalize(light.position.xyz - fragPos);
         vec3 halfwayDir = normalize(lightDir + viewDir);
 
         //spot lightning stuff

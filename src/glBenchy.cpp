@@ -57,7 +57,7 @@ GLBObject* armObj, *armObj2;
 
 static double lastFrameTime = 0.0;
 
-int screen[] = {1280, 720};
+int screen[] = {640, 480};
 
 void mainLoop();
 
@@ -92,6 +92,8 @@ unsigned int pingpongFBO[2];
 unsigned int pingpongColorbuffers[2];
 
 void initFramebuffer();
+
+GLBObject* lightObj;
 
 int main(int argc, char** argv)
 {
@@ -172,7 +174,11 @@ int main(int argc, char** argv)
     //Load default resources!
     ResourceManager::LoadTexture("../assets/model/character/PC_A/textures/_04.png");
     GLBObject* newObj = ResourceManager::LoadModel("../assets/default/mesh/cube.fbx");
+    Material* cubeMat = ResourceManager::LoadMaterial("../assets/material/metal_cube.mat");
+    ((MeshRendererComponent*)newObj->GetComponent<MeshRendererComponent>())->m_Materials[0] = *cubeMat;
     GLBObject* plane = ResourceManager::LoadModel("../assets/default/mesh/plane.fbx");
+    Material* groundMat = ResourceManager::LoadMaterial("../assets/material/ground.mat");
+    ((MeshRendererComponent*)plane->GetComponent<MeshRendererComponent>())->m_Materials[0] = *groundMat;
     Material* mat = ResourceManager::LoadMaterial("../assets/material/unlit_cube.mat");
 
     plane->transform.Scale({150.0f,150.0f,150.0f});
@@ -190,9 +196,6 @@ int main(int argc, char** argv)
     armObj->transform.Position({-4.0f,0.0f,-3.0f});
     armObj2->transform.Position({0.0f,0.0f,-20.0f});
     //armObj2->transform.Rotation(HMM_QFromAxisAngle_RH({0.0,1.0f,0.0f}, HMM_AngleDeg(180.0f)));
-
-    MeshRendererComponent* mr = (MeshRendererComponent*)newObj->GetComponent<MeshRendererComponent>();
-    mr->m_Materials[0] = *mat;
 
     newObj->transform.Position({0.0f,6.0f,-20.0f});
     cameraObj = newObj; 
@@ -223,6 +226,8 @@ int main(int argc, char** argv)
     newObj->transform.Rotation(-55.0f, 15.0f, 0.0f);
     newObj->AddComponent(lightPtr);
     
+    lightObj = newObj;
+
     newSc->AddObject(newObj);
 
     newSc->AddObject(armObj);
@@ -287,6 +292,8 @@ void mainLoop()
 
     rotAngle2 += rotDelta2 * (float)Time::deltaTime;
     if(rotAngle2 > 360.0f) rotAngle2 -= 360.0f;
+
+    lightObj->transform.Rotate(0.0f, 30.0f * Time::deltaTime, 0.0f);
 
     armObj->transform.Rotate(0.0f, 60.0f * (float)Time::deltaTime, 0.0f);
     if(armObj->transform.RotationEulerAngles().Y > 360.0f)

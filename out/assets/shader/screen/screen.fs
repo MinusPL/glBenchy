@@ -11,10 +11,10 @@ const float offset = 1.0 / 300.0;
 float gamma = 2.2;
 float exposure = 1.0;
 
-float kernel[9] = float[](
-    0, 0, 0,
-    0, 0, 0,
-    0, 0, 0
+const float kernel[9] = float[9](
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0
 );
 
 vec2 offsets[9] = vec2[](
