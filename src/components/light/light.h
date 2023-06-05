@@ -16,13 +16,18 @@ enum LightType
 
 struct Light
 {
+    LightType type;
     //This will be either 3D space position for point lights or direction for directional lights
     UVec4 position;
+    UVec4 spotDirection;
     UVec4 color = {1.0f,1.0f,1.0f,1.0f};
 
     float constant = 1.0f;
     float linear = 0.09f;
     float quadratic = 0.032f;
+
+    float spotAngle;
+    float softSpotAngle;
 };
 
 class LightComponent : public GLBComponent
@@ -31,7 +36,6 @@ class LightComponent : public GLBComponent
 public:
     LightComponent();
     Light lightData;
-    LightType type;
     static std::vector<Light> GetLights();
     //FIXME: Temporary solution, will be removed later!
     static std::vector<Light*> lights;

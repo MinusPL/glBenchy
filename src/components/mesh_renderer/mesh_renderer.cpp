@@ -41,16 +41,31 @@ void MeshRendererComponent::Draw()
             for(int i = 0; i < LightComponent::lights.size(); i++)
             {
                 std::string posStr = std::format("lights[{}].position", i);
+                std::string spotDirStr = std::format("lights[{}].spotDirection", i);
                 std::string constantStr = std::format("lights[{}].constant", i);
                 std::string linearStr = std::format("lights[{}].linear", i);
                 std::string quadraticStr = std::format("lights[{}].quadratic", i);
                 std::string colorStr = std::format("lights[{}].color", i);
+                std::string spotAngleStr = std::format("lights[{}].spotAngle", i);
+                std::string softSpotAngleStr = std::format("lights[{}].softSpotAngle", i);
 
-                m_Material->m_Shader->SetVector4f(posStr.c_str(), LightComponent::lights[i]->position); 
+                m_Material->m_Shader->SetVector4f(posStr.c_str(), LightComponent::lights[i]->position);
                 m_Material->m_Shader->SetFloat(constantStr.c_str(), LightComponent::lights[i]->constant); 
                 m_Material->m_Shader->SetFloat(linearStr.c_str(), LightComponent::lights[i]->linear); 
                 m_Material->m_Shader->SetFloat(quadraticStr.c_str(), LightComponent::lights[i]->quadratic); 
-                m_Material->m_Shader->SetVector4f(colorStr.c_str(), LightComponent::lights[i]->color); 
+                m_Material->m_Shader->SetVector4f(colorStr.c_str(), LightComponent::lights[i]->color);
+                if(LightComponent::lights[i]->type == SPOT_LIGHT)
+                {
+                    m_Material->m_Shader->SetVector4f(spotDirStr.c_str(), LightComponent::lights[i]->spotDirection);
+                    m_Material->m_Shader->SetFloat(spotAngleStr.c_str(), cos(HMM_AngleDeg(LightComponent::lights[i]->spotAngle)));
+                    m_Material->m_Shader->SetFloat(softSpotAngleStr.c_str(), cos(HMM_AngleDeg(LightComponent::lights[i]->softSpotAngle)));
+                }
+                else
+                {
+                    m_Material->m_Shader->SetVector4f(spotDirStr.c_str(), HMM_V4(0.0f,0.0f,1.0f,0.0f));
+                    m_Material->m_Shader->SetFloat(spotAngleStr.c_str(), 1.0f);
+                    m_Material->m_Shader->SetFloat(softSpotAngleStr.c_str(), 1.0f);
+                }
             }
             //Draw GL object
             glBindVertexArray(surf->VAO);

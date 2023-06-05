@@ -27,4 +27,5 @@ void main()
     if(texColor.a < 0.5)
         discard;
     FragColor = vec4(texColor.rgb * baseColor.rgb, 1.0);
+    //FragColor.rgb = pow(FragColor.rgb, vec3(1.0/2.2));
 }

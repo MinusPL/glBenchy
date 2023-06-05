@@ -1,7 +1,7 @@
 #include "material.h"
 
 Material::Material() :
-    m_Name(""), Object()
+    m_Name(""), m_Translucent(false), Object()
 {
 
 }

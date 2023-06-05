@@ -130,6 +130,11 @@ Material* ResourceManager::LoadMaterial(const char *materialFilePath)
 	else
 		mat->m_Shader = ResourceManager::defaultShader;
 
+	if(materialData["m_Transparent"] != nullptr)
+		mat->m_Translucent = materialData["m_ShaderFile"].as<bool>();
+	else
+		mat->m_Translucent = false;
+
     mat->m_Name = materialData["m_Name"].as<std::string>();
     return mat;
 }

@@ -15,6 +15,7 @@ class Material : public Object
 public:
     std::string m_Name;
     Shader* m_Shader;
+    bool m_Translucent;
     std::unordered_map<std::string, int> m_Ints;
     std::unordered_map<std::string, float> m_Floats;
     std::unordered_map<std::string, Texture*> m_Textures;

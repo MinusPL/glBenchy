@@ -38,6 +38,7 @@ float ArmControllerComponent::PartialGradient(UVec3 target, std::vector<float> &
 
 void ArmControllerComponent::InverseKinematics(UVec3 target, std::vector<float> &angles)
 {
+    //TODO: Add return to initial pose;
     if (DistanceFromTarget(target, angles) < DISTANCE_THRESHOLD)
         return;
     for(int i = 0; i < _joints.size(); i++)
