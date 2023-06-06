@@ -44,6 +44,7 @@
 GLFWwindow* winPtr = nullptr;
 
 GLBObject* cameraObj;
+GLBObject* realCameraPtr = nullptr;
 
 float delta = 5.0f;
 float rotAngle = 0.0f;
@@ -57,7 +58,7 @@ GLBObject* armObj, *armObj2;
 
 static double lastFrameTime = 0.0;
 
-int screen[] = {640, 480};
+int screen[] = {1280, 720};
 
 void mainLoop();
 
@@ -82,6 +83,52 @@ float quadVertices[] = { // vertex attributes for a quad that fills the entire s
     1.0f, -1.0f,  1.0f, 0.0f,
     1.0f,  1.0f,  1.0f, 1.0f
 };
+
+float skyboxVertices[] = {
+    // positions          
+    -1.0f,  1.0f, -1.0f,
+    -1.0f, -1.0f, -1.0f,
+     1.0f, -1.0f, -1.0f,
+     1.0f, -1.0f, -1.0f,
+     1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f,
+
+    -1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f,
+
+     1.0f, -1.0f, -1.0f,
+     1.0f, -1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f, -1.0f,
+     1.0f, -1.0f, -1.0f,
+
+    -1.0f, -1.0f,  1.0f,
+    -1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f,
+
+    -1.0f,  1.0f, -1.0f,
+     1.0f,  1.0f, -1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+    -1.0f,  1.0f,  1.0f,
+    -1.0f,  1.0f, -1.0f,
+
+    -1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f,  1.0f,
+     1.0f, -1.0f, -1.0f,
+     1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f,  1.0f,
+     1.0f, -1.0f,  1.0f
+};
+
 unsigned int quadVAO, quadVBO;
 unsigned int screenColorbuffers[2];
 
@@ -90,6 +137,10 @@ Shader* screenShader = nullptr;
 Shader* blurShader = nullptr;
 unsigned int pingpongFBO[2];
 unsigned int pingpongColorbuffers[2];
+
+unsigned int skyboxVAO, skyboxVBO;
+unsigned int skyboxTexture;
+Shader* skyboxShader = nullptr;
 
 void initFramebuffer();
 
@@ -140,7 +191,7 @@ int main(int argc, char** argv)
     glfwGetFramebufferSize(winPtr, &width, &height);
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);  
  
@@ -210,6 +261,7 @@ int main(int argc, char** argv)
     CameraComponent* camera = new CameraComponent();
     newObj->AddComponent(camera);
     newObj->tags.insert("MainCamera");
+    realCameraPtr = newObj;
     newSc->AddObject(newObj);
 
     newObj = new GLBObject();
@@ -223,7 +275,7 @@ int main(int argc, char** argv)
     lightPtr->lightData.linear = 0.007f;
     lightPtr->lightData.quadratic = 0.0002f;
     newObj->transform.Position({0.0f,20.0f,-20.0f});
-    newObj->transform.Rotation(-55.0f, 15.0f, 0.0f);
+    newObj->transform.Rotation(-35.0f, 15.0f, 0.0f);
     newObj->AddComponent(lightPtr);
     
     lightObj = newObj;
@@ -293,7 +345,8 @@ void mainLoop()
     rotAngle2 += rotDelta2 * (float)Time::deltaTime;
     if(rotAngle2 > 360.0f) rotAngle2 -= 360.0f;
 
-    lightObj->transform.Rotate(0.0f, 30.0f * Time::deltaTime, 0.0f);
+    lightObj->transform.Rotate(0.0f, 30.0f * (float)Time::deltaTime, 0.0f, false);
+    //printf("%f %f %f\n", lightObj->transform.RotationEulerAngles().X, lightObj->transform.RotationEulerAngles().Y, lightObj->transform.RotationEulerAngles().Z);
 
     armObj->transform.Rotate(0.0f, 60.0f * (float)Time::deltaTime, 0.0f);
     if(armObj->transform.RotationEulerAngles().Y > 360.0f)
@@ -302,6 +355,8 @@ void mainLoop()
         rotAngles.Y -= 360.0f;
         armObj->transform.Rotation(rotAngles);
     }
+
+    realCameraPtr->transform.Rotate(0.0f, 45.0f*Time::deltaTime, 0.0f, false);
     //----------------------------
 
     //Draw scene to framebuffer
@@ -310,6 +365,27 @@ void mainLoop()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     SceneManager::activeScene->Draw();
+
+    //Draw skybox!
+    glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+    skyboxShader->Use();
+    HMM_Mat3 m3;
+    m3.Columns[0] = CameraComponent::current->view.Columns[0].XYZ;
+    m3.Columns[1] = CameraComponent::current->view.Columns[1].XYZ;
+    m3.Columns[2] = CameraComponent::current->view.Columns[2].XYZ;
+    UMat4 m4;
+    m4.Columns[0] = {m3.Columns[0], 0.0f};
+    m4.Columns[1] = {m3.Columns[1], 0.0f};
+    m4.Columns[2] = {m3.Columns[2], 0.0f};
+    m4.Columns[3] = {0.0f, 0.0f,0.0f, 1.0f};
+    skyboxShader->SetMatrix4("GLB_V", CameraComponent::current->view);
+    skyboxShader->SetMatrix4("GLB_P", CameraComponent::current->projection);
+    glBindVertexArray(skyboxVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+    glDepthFunc(GL_LESS);
 
     //BLOOM TIME
     bool horizontal = true, first_iteration = true;
@@ -423,4 +499,16 @@ void initFramebuffer()
             std::cout << "Framebuffer not complete!" << std::endl;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    skyboxShader = ResourceManager::LoadShader("../assets/shader/skybox/default.vs", "../assets/shader/skybox/default.fs");
+    skyboxShader->SetInteger("skybox", 0, true);
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    skyboxTexture = ResourceManager::LoadCubemap("../assets/texture/skybox/box1");
 }

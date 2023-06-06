@@ -10,6 +10,7 @@ class ArmControllerComponent : public GLBComponent
 public:
     std::vector<ArmJoint*> _joints;
     std::vector<float> _angles;
+    std::vector<UVec2> _angleLimits;
     GLBObject* _targetPtr;
 private:
     UVec3 ForwardKinematics(std::vector<float>& angles);

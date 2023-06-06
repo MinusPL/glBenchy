@@ -57,26 +57,31 @@ GLBObject *ObjLoader::CreateArm()
     armJointPtr->rotationAxis = {0.0f,1.0f,0.0f};
     rotBasePtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
+    accPtr->_angleLimits.push_back({0.0f, 0.0f});
 
     armJointPtr = new ArmJoint();
     armJointPtr->rotationAxis = {1.0f,0.0f,0.0f};
     lowerArmPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
+    accPtr->_angleLimits.push_back({-90.0f, 90.0f});
 
     armJointPtr = new ArmJoint();
     armJointPtr->rotationAxis = {1.0f,0.0f,0.0f};
     upperArmPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
+    accPtr->_angleLimits.push_back({-150.0f, 150.0f});
 
     armJointPtr = new ArmJoint();
     armJointPtr->rotationAxis = {1.0f,0.0f,0.0f};
     faceAttachPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
+    accPtr->_angleLimits.push_back({-110.0f, 110.0f});
 
     armJointPtr = new ArmJoint();
     armJointPtr->rotationAxis = {0.0f,1.0f,0.0f};
     faceRotatorPtr->AddComponent(armJointPtr);
     accPtr->_joints.push_back(armJointPtr);
+    accPtr->_angleLimits.push_back({-180.0f, 180.0f});
 
     accPtr->_angles = std::vector<float>(accPtr->_joints.size(), 0.0f);
     

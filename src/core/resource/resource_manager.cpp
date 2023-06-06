@@ -346,3 +346,26 @@ Texture *ResourceManager::LoadTexture(const char *textureFilePath)
 	stbi_image_free(data);
 	return textureObj;
 }
+
+int ResourceManager::LoadCubemap(const char* name)
+{
+	const char* faceNames[6] = {"right", "left", "top", "bottom", "front", "back"};
+	unsigned int texID;
+	glGenTextures(1, &texID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texID);
+	for(int i = 0; i < 6; i++)
+	{
+		int w,h,nc;
+		std::string spath = std::string(name) + "_" + faceNames[i] + ".jpg";
+		unsigned char *data = stbi_load(spath.c_str(), &w, &h, &nc, 0);	
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		stbi_image_free(data);
+	}
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return texID;
+}

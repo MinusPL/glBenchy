@@ -85,9 +85,13 @@ public:
         UpdateVectors();
     }
 
-    void Rotate(float x, float y, float z)
+    void Rotate(float x, float y, float z, bool localSpace = true)
     {
-        rotation = rotation * QuatFromEuler(HMM_AngleDeg(x),HMM_AngleDeg(y),HMM_AngleDeg(z));
+        UQuat eulerQuat = QuatFromEuler(HMM_AngleDeg(x),HMM_AngleDeg(y),HMM_AngleDeg(z));
+        if(localSpace)
+            rotation = rotation * eulerQuat;
+        else
+            rotation = rotation * (HMM_InvQ(rotation) * eulerQuat * rotation);
         UpdateVectors();
     }
 

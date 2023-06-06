@@ -1,8 +1,11 @@
 #include "armcontroller.h"
+#include "../../global/glbtime.h"
 #include "../../core/debug/debug.h"
 
 #define SAMPLING_DISTANCE 15.0f
 #define DISTANCE_THRESHOLD 0.01f
+
+
 
 UVec3 ArmControllerComponent::ForwardKinematics(std::vector<float>& angles)
 {
@@ -44,8 +47,12 @@ void ArmControllerComponent::InverseKinematics(UVec3 target, std::vector<float> 
     for(int i = 0; i < _joints.size(); i++)
     {
         float g = PartialGradient(target, angles, i);
-        angles[i] -= 100.0f * g;
+        angles[i] -= g * 5000.0f * (float)Time::deltaTime;
         //if(angles[i] > 360.f) angles[i] -= 360.f;
+
+        if(_angleLimits[i].X != 0.0f && _angleLimits[i].Y != 0.0f)
+            angles[i] = HMM_Clamp(_angleLimits[i].X, angles[i], _angleLimits[i].Y);
+
         if (DistanceFromTarget(target, angles) < DISTANCE_THRESHOLD)
             return;
         _joints[i]->mp_Object->transform.Rotation(HMM_QFromAxisAngle_RH(_joints[i]->rotationAxis, HMM_AngleDeg(angles[i])));

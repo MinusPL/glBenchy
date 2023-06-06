@@ -26,6 +26,7 @@ public:
     static Material* LoadMaterial(const char* materialFilePath);
     static GLBObject* LoadModel(const char* modelFilePath);
     static Texture* LoadTexture(const char* textureFilePath);
+    static int LoadCubemap(const char* name);
     static Shader* defaultShader;
     static Material* defaultMaterial;
     template <typename T>
