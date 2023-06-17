@@ -1,6 +1,7 @@
 #include "light.h"
 
 #include "../../core/scene_object/scene_object.h"
+#include "../../core/debug/debug.h"
 
 std::vector<Light*> LightComponent::lights;
 
@@ -20,9 +21,9 @@ void LightComponent::Update()
             lightData.spotDirection = {0.0f,0.0f,1.0f,0.0f};
             break;
         case SPOT_LIGHT:
-            lightData.position = HMM_V4(this->mp_Object->transform.Position().X,
-                                this->mp_Object->transform.Position().Y,
-                                this->mp_Object->transform.Position().Z, 0.0f);
+            lightData.position = HMM_V4(this->mp_Object->transform.WorldPosition().X,
+                                this->mp_Object->transform.WorldPosition().Y,
+                                this->mp_Object->transform.WorldPosition().Z, 0.0f);
             lightData.spotDirection = HMM_V4(this->mp_Object->transform.Forward().X,
                                         this->mp_Object->transform.Forward().Y,
                                         this->mp_Object->transform.Forward().Z, 0.0f);

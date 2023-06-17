@@ -66,12 +66,12 @@ add_compile_definitions(_USE_MATH_DEFINES)
 add_subdirectory(src)
 
 if (EMSCRIPTEN)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2  -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2  -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY")
     set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")
     target_compile_definitions(${PROJECT_NAME} PUBLIC -DEMSCRIPTEN=1)
-    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s USE_GLFW=3 -s USE_WEBGL2=1 -s FULL_ES3=1")
-    add_definitions(-DWASM_BUILD)
+    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-sUSE_GLFW=3 -sUSE_WEBGL2=1 -sFULL_ES3=1 -sASSERTIONS=1 -sSTACK_OVERFLOW_CHECK=2 -sALLOW_MEMORY_GROWTH --preload-file assets --shell-file shell_files/shell.html")
+    add_definitions(-DWASM_BUILD -std=c++20)
 endif ()
 
 if(NOT EMSCRIPTEN)
@@ -90,12 +90,14 @@ find_package(OpenGL REQUIRED)
 
 #Common has to be added after executable statement - otherwise there's no target to attach sources to.
 
+if(NOT EMSCRIPTEN)
 set_target_properties(glBenchy PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}")
 set_target_properties(glBenchy PROPERTIES DEBUG_OUTPUT_NAME "${CMAKE_PROJECT_NAME}_d")
 
-set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/out/bin")
-set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/out/bin")
-set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/out/bin")
+set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/out")
+set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/out")
+set_target_properties(glBenchy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/out")
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(glBenchy glfw assimp yaml-cpp ${OPENGL_LIBRARY})

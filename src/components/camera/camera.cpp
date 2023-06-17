@@ -11,6 +11,8 @@ CameraComponent::CameraComponent()
     fov = 45.0f;
     aspectRatio = 16.0f/9.0f;
     nearClipPlane = 0.1f;
+    usePostprocess = true;
+    drawSkybox = true;
     farClipPlane = 100.0f;
     projection = HMM_Perspective_RH_NO(fov, aspectRatio, nearClipPlane, farClipPlane);
     //set as main camera if there is no other camera in scene hierarchy.

@@ -1,22 +1,21 @@
 #include <cstdio>
 
-#ifndef EMSCRIPTEN
-#else
-#include<emscripten/emscripten.h>
-#define GLFW_INCLUDE_ES3
-#endif
-
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/imgui_styles.h"
 
+#ifndef EMSCRIPTEN
+#include <glad/glad.h>
+#else
+#include<emscripten/emscripten.h>
+#define GLFW_INCLUDE_ES3
+#endif
+#include <GLFW/glfw3.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
 
 #include <fstream>
 #include <sstream>
@@ -38,29 +37,36 @@
 #include "components/light/light.h"
 #include "components/arm_controller/armcontroller.h"
 
+#include "platform/platform.h"
+
 #include "core/debug/debug.h"
+#include "core/performance_monitor/performance_monitor.h"
 
 
 GLFWwindow* winPtr = nullptr;
 
-GLBObject* cameraObj;
 GLBObject* realCameraPtr = nullptr;
-
-float delta = 5.0f;
-float rotAngle = 0.0f;
-float rotAngle2 = 0.0f;
-float rotDelta = 10.0f;
-float rotDelta2 = 5.0f;
-
-float rotAngle3 = 0.0f;
-
-GLBObject* armObj, *armObj2;
 
 static double lastFrameTime = 0.0;
 
 int screen[] = {1280, 720};
 
 void mainLoop();
+
+bool isRunning = true;
+
+void exitMainLoop()
+{
+    std::cout <<"START EXIT CODE" <<std::endl;
+#ifdef EMSCRIPTEN
+    emscripten_cancel_main_loop();
+#else
+    glfwSetWindowShouldClose(winPtr, GLFW_TRUE);
+#endif
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glfwSwapBuffers(winPtr);
+}
 
 void GLFWWindowSizeChanged(GLFWwindow* window, int width, int height)
 {
@@ -174,12 +180,13 @@ int main(int argc, char** argv)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_RESIZABLE, false);
+    //glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     
 
-    winPtr = glfwCreateWindow(screen[0], screen[1], "GLBenchy", nullptr, nullptr);
+    winPtr = glfwCreateWindow(screen[0], screen[1], "GLBenchy",nullptr, nullptr);
     glfwSetWindowSizeLimits(winPtr, 640, 480, GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwMakeContextCurrent(winPtr);
-    glfwSwapInterval(0);
+    //glfwSwapInterval(0);
     glfwSetWindowSizeCallback(winPtr, GLFWWindowSizeChanged);
     glfwSetKeyCallback(winPtr, KeyInputs);
 
@@ -193,7 +200,9 @@ int main(int argc, char** argv)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
-    glEnable(GL_CULL_FACE);  
+    glEnable(GL_CULL_FACE); 
+
+    
  
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     //glEnable(GL_MULTISAMPLE_ARB);
@@ -205,102 +214,71 @@ int main(int argc, char** argv)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.IniFilename = NULL;
-    SetDarkStyle();
 
     ImGui_ImplGlfw_InitForOpenGL(winPtr, true);
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
     printf("Entering main loop!\n");
 
-    //Loop!
-    //Set time offset
-    Time::time = glfwGetTime();
-
+    //Still need to move it to other place, this is not supposed to be a part of "platform" code
     Scene* newSc = new Scene();
+    SceneManager::scenes["scene1"] = newSc;
 
     //Load initial data, setup default resources.
-    ResourceManager::defaultShader = ResourceManager::LoadShader("../assets/shader/default.vs", "../assets/shader/default.fs");
-    ResourceManager::defaultMaterial = ResourceManager::LoadMaterial("../assets/material/default.mat");
+    ResourceManager::defaultShader = ResourceManager::LoadShader("assets/shader/default.vs", "assets/shader/default.fs");
+    ResourceManager::defaultMaterial = ResourceManager::LoadMaterial("assets/material/default.mat");
 
-    //Load default resources!
-    ResourceManager::LoadTexture("../assets/model/character/PC_A/textures/_04.png");
-    GLBObject* newObj = ResourceManager::LoadModel("../assets/default/mesh/cube.fbx");
-    Material* cubeMat = ResourceManager::LoadMaterial("../assets/material/metal_cube.mat");
-    ((MeshRendererComponent*)newObj->GetComponent<MeshRendererComponent>())->m_Materials[0] = *cubeMat;
-    GLBObject* plane = ResourceManager::LoadModel("../assets/default/mesh/plane.fbx");
-    Material* groundMat = ResourceManager::LoadMaterial("../assets/material/ground.mat");
-    ((MeshRendererComponent*)plane->GetComponent<MeshRendererComponent>())->m_Materials[0] = *groundMat;
-    Material* mat = ResourceManager::LoadMaterial("../assets/material/unlit_cube.mat");
+    //Move to init scene code!
+    GLBObject* hallObj = ObjLoader::LoadHall();
+    newSc->AddObject(hallObj);
 
-    plane->transform.Scale({150.0f,150.0f,150.0f});
-    newSc->AddObject(plane);
 
-    armObj = ResourceManager::LoadModel("../assets/model/environment/factory/arm.fbx");
-    armObj->transform.Scale({0.25f,0.25f,0.25f});
-    //armObj->transform.Scale({0.01f,0.01f,0.01f});
-    //Add specific object loaders!
-    armObj2 = ObjLoader::CreateArm();
-    //armObj2->transform.Scale({0.25f,0.25f,0.25f});
-
-    ((ArmControllerComponent*)armObj2->GetComponent<ArmControllerComponent>())->_targetPtr = newObj;
-
-    armObj->transform.Position({-4.0f,0.0f,-3.0f});
-    armObj2->transform.Position({0.0f,0.0f,-20.0f});
-    //armObj2->transform.Rotation(HMM_QFromAxisAngle_RH({0.0,1.0f,0.0f}, HMM_AngleDeg(180.0f)));
-
-    newObj->transform.Position({0.0f,6.0f,-20.0f});
-    cameraObj = newObj; 
-    newSc->AddObject(newObj);
-
-    newObj = new GLBObject();
-    newObj->transform.Position(0.0f, 3.0f, 3.0f);
-
-    //newObj->transform.Rotation(HMM_QFromAxisAngle_RH({1.0f,0.0f,0.0f}, HMM_AngleDeg(90.0f)));
-    newObj->transform.Rotation(-20.0f,0.0f,0.0f);
-    
+    realCameraPtr = new GLBObject();
+    realCameraPtr->transform.Position(-14.193f, 3.8731f, 35.386f);
+    realCameraPtr->transform.Rotation(-7.0f,34.0f,0.0f);
     CameraComponent* camera = new CameraComponent();
-    newObj->AddComponent(camera);
-    newObj->tags.insert("MainCamera");
-    realCameraPtr = newObj;
-    newSc->AddObject(newObj);
-
-    newObj = new GLBObject();
-
-    LightComponent* lightPtr = new LightComponent();
-
-    lightPtr->lightData.type = DIRECTIONAL_LIGHT;
-    lightPtr->lightData.color = {1.0f, 1.0f, 0.98f, 1.0f};
-    lightPtr->lightData.spotAngle = 20.0f;
-    lightPtr->lightData.softSpotAngle = 22.5f;
-    lightPtr->lightData.linear = 0.007f;
-    lightPtr->lightData.quadratic = 0.0002f;
-    newObj->transform.Position({0.0f,20.0f,-20.0f});
-    newObj->transform.Rotation(-35.0f, 15.0f, 0.0f);
-    newObj->AddComponent(lightPtr);
+    realCameraPtr->AddComponent(camera);
+    realCameraPtr->tags.insert("MainCamera");
+    newSc->AddObject(realCameraPtr);
     
-    lightObj = newObj;
+    //SceneManager::activeScene = newSc;
 
-    newSc->AddObject(newObj);
+    //Prep shader scene
+    newSc = new Scene();
+    GLBObject* oscPtr = new GLBObject();
+    camera = new CameraComponent();
+    camera->orthographicSize = {1, 1};
+    camera->SetCameraMode(true);
+    //camera->drawSkybox = false;
+    camera->usePostprocess = false;
+    oscPtr->AddComponent(camera);
+    oscPtr->transform.Position(0.0f,0.0f, 2.0f);
+    oscPtr->tags.insert("MainCamera");
+    newSc->AddObject(oscPtr);
+    oscPtr = ObjLoader::CreateWholeScreenQuad();
+    newSc->AddObject(oscPtr);
 
-    newSc->AddObject(armObj);
-    newSc->AddObject(armObj2);
-    
-    SceneManager::scenes["scene1"] = newSc;
-    SceneManager::activeScene = newSc;
+    SceneManager::scenes["scene2"] = newSc;
 
-    lastFrameTime = Time::time;
+    SceneManager::SwitchScene("scene1");
 
-    Debug::InitDebug();
+    //Debug::InitDebug();
 
+    PerfMonitor::beginTest("Standard geometry test");
+    glfwPollEvents();
+    lastFrameTime = GetPlatformTime();
 #ifdef EMSCRIPTEN
-      emscripten_set_main_loop(mainLoop, 0, 1);
+    emscripten_set_main_loop(mainLoop, 0, 0);
+    emscripten_set_main_loop_timing(EM_TIMING_SETTIMEOUT, 0);
+    glfwSwapInterval(0);
 #else
+    glfwSwapInterval(0);
     while (!glfwWindowShouldClose(winPtr))
     {
           mainLoop();
     }
-#endif
     glfwTerminate();
+#endif
     return 0;
 }
 
@@ -309,54 +287,23 @@ bool shaderChooserOpen = true;
 double changeTime = 5.0, changeTimer = changeTime;
 bool curScene = false;
 
+double runTime = 0.0f;
+int runCounts = 0;
 void mainLoop()
 {
+    double logicTime = GetPlatformTime();
     //Calculate delta time.
-    Time::time = glfwGetTime();
-    Time::deltaTime = Time::time - lastFrameTime;
+    Time::time = logicTime;
     //printf("%f\n", 1.0f/Time::deltaTime);
-    lastFrameTime = Time::time;
-
-    //begin ImGui Frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    //Rend
-    ImGui::NewFrame();
-    //Place for UI
-
-    if(Global::EditorMode)
-        Editor::DrawEditorUI();
-
-    //Finalize UI
-    ImGui::Render();
 
 
     SceneManager::activeScene->Update();
 
-    //-----------update additional logic
-    double r = 10.0 * cos(Time::time*2.0);
-    UVec3 newPos1 = {(float)(0.0 + (r * cos(Time::time))),6.0f + 4.0f * sin(Time::time/2.0),(float)(-20.0 + (r * sin(Time::time)))};
-    cameraObj->transform.Position(newPos1);
+    //calc logic time
+    logicTime = GetPlatformTime() - logicTime;
 
-    rotAngle += rotDelta * (float)Time::deltaTime;
-    if(rotAngle > 360.0f) rotAngle -= 360.0f;
-    cameraObj->transform.Rotation(HMM_QFromAxisAngle_RH({0.0,0.0f,1.0f}, HMM_AngleDeg(rotAngle)));
-
-    rotAngle2 += rotDelta2 * (float)Time::deltaTime;
-    if(rotAngle2 > 360.0f) rotAngle2 -= 360.0f;
-
-    lightObj->transform.Rotate(0.0f, 30.0f * (float)Time::deltaTime, 0.0f, false);
-    //printf("%f %f %f\n", lightObj->transform.RotationEulerAngles().X, lightObj->transform.RotationEulerAngles().Y, lightObj->transform.RotationEulerAngles().Z);
-
-    armObj->transform.Rotate(0.0f, 60.0f * (float)Time::deltaTime, 0.0f);
-    if(armObj->transform.RotationEulerAngles().Y > 360.0f)
-    {
-        UVec3 rotAngles = armObj->transform.RotationEulerAngles();
-        rotAngles.Y -= 360.0f;
-        armObj->transform.Rotation(rotAngles);
-    }
-
-    realCameraPtr->transform.Rotate(0.0f, 45.0f*Time::deltaTime, 0.0f, false);
+    //This is WRONG
+    double renderTime = GetPlatformTime();
     //----------------------------
 
     //Draw scene to framebuffer
@@ -366,42 +313,54 @@ void mainLoop()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     SceneManager::activeScene->Draw();
 
-    //Draw skybox!
-    glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-    skyboxShader->Use();
-    HMM_Mat3 m3;
-    m3.Columns[0] = CameraComponent::current->view.Columns[0].XYZ;
-    m3.Columns[1] = CameraComponent::current->view.Columns[1].XYZ;
-    m3.Columns[2] = CameraComponent::current->view.Columns[2].XYZ;
-    UMat4 m4;
-    m4.Columns[0] = {m3.Columns[0], 0.0f};
-    m4.Columns[1] = {m3.Columns[1], 0.0f};
-    m4.Columns[2] = {m3.Columns[2], 0.0f};
-    m4.Columns[3] = {0.0f, 0.0f,0.0f, 1.0f};
-    skyboxShader->SetMatrix4("GLB_V", CameraComponent::current->view);
-    skyboxShader->SetMatrix4("GLB_P", CameraComponent::current->projection);
-    glBindVertexArray(skyboxVAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-    glDepthFunc(GL_LESS);
-
-    //BLOOM TIME
-    bool horizontal = true, first_iteration = true;
-    unsigned int amount = 10;
-    blurShader->Use();
-    for (unsigned int i = 0; i < amount; i++)
+    if(CameraComponent::current->drawSkybox)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
-        blurShader->SetInteger("horizontal", horizontal);
+        //Only if scene is supposed to have skybox!
+        //Draw skybox
+        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+        skyboxShader->Use();
+        HMM_Mat3 m3;
+        m3.Columns[0] = CameraComponent::current->view.Columns[0].XYZ;
+        m3.Columns[1] = CameraComponent::current->view.Columns[1].XYZ;
+        m3.Columns[2] = CameraComponent::current->view.Columns[2].XYZ;
+        UMat4 m4;
+        m4.Columns[0] = {m3.Columns[0], 0.0f};
+        m4.Columns[1] = {m3.Columns[1], 0.0f};
+        m4.Columns[2] = {m3.Columns[2], 0.0f};
+        m4.Columns[3] = {0.0f, 0.0f,0.0f, 1.0f};
+        skyboxShader->SetMatrix4("GLB_V", CameraComponent::current->view);
+        skyboxShader->SetMatrix4("GLB_P", CameraComponent::current->projection);
+        glBindVertexArray(skyboxVAO);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, first_iteration ? screenColorbuffers[1] : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
-        glBindVertexArray(quadVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6); 
-        horizontal = !horizontal;
-        if (first_iteration)
-            first_iteration = false;
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS);
+    }
+
+    bool horizontal = true;
+    if(CameraComponent::current->usePostprocess)
+    {
+        //Only if scene is supposed to be post processed!
+        //Post processing time
+        horizontal = true;
+        bool first_iteration = true;
+        unsigned int amount = 10;
+        blurShader->Use();
+        for (unsigned int i = 0; i < amount; i++)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            blurShader->SetInteger("horizontal", horizontal);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, first_iteration ? screenColorbuffers[1] : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
+            glBindVertexArray(quadVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 6); 
+            horizontal = !horizontal;
+            if (first_iteration)
+                first_iteration = false;
+        }
     }
 
     //Draw framebuffer to window
@@ -409,31 +368,69 @@ void mainLoop()
     glDisable(GL_DEPTH_TEST);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
     glClear(GL_COLOR_BUFFER_BIT);
-
     screenShader->Use();
+    screenShader->SetInteger("useBloom", (int)CameraComponent::current->usePostprocess);
     glBindVertexArray(quadVAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, screenColorbuffers[0]);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
-    glDrawArrays(GL_TRIANGLES, 0, 6); 
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    //Debug::DrawLine({0.0f,0.0f,0.0f}, {0.0f,1.0f,0.0f});
-
-    //Render things?
+    renderTime = GetPlatformTime() - renderTime;
     
+    double uiTime = GetPlatformTime();
+    //begin ImGui Frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    //Rend
+    ImGui::NewFrame();
+    //Place for UI
+    PerfMonitor::DrawUI();
+    //Finalize UI
+    ImGui::Render();
     //Draw UI to framebuffer
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+    uiTime = GetPlatformTime() - uiTime;
     //Swap Buffers.
+
+    double GLFWTime = GetPlatformTime();
     glfwSwapBuffers(winPtr);
     glfwPollEvents();
+    GLFWTime = GetPlatformTime() - GLFWTime;
+    PerfMonitor::logicUpdateTime = logicTime;
+    PerfMonitor::renderTime = renderTime;
+    PerfMonitor::UITime = uiTime;
+    PerfMonitor::glfwTime = GLFWTime;
+    PerfMonitor::frameTime = Time::deltaTime;
+    PerfMonitor::createSnapShot();
+    Time::deltaTime = Time::time - lastFrameTime;
+    lastFrameTime = Time::time;
+
+    //Test controls
+    if(runTime > 60.0)
+    {
+        runCounts++;
+        if(runCounts >= 2)
+        {
+            PerfMonitor::saveTestResults();
+            exitMainLoop();
+        }
+        SceneManager::SwitchScene("scene2");
+        PerfMonitor::beginTest("Pure shader test");
+        Time::time = GetPlatformTime();
+        Time::deltaTime = 0.0;
+        lastFrameTime = Time::time;
+        runTime = 0.0;
+    }
+    runTime += Time::deltaTime;
+
 }
 
 void KeyInputs(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if(key == GLFW_KEY_A && action == GLFW_PRESS) cameraObj->transform.Position(cameraObj->transform.Position() + HMM_V3(-1.0f,0.0f,0.0f));
-    if(key == GLFW_KEY_D && action == GLFW_PRESS) cameraObj->transform.Position(cameraObj->transform.Position() + HMM_V3(1.0f,0.0f,0.0f));
+
 }
 
 void initFramebuffer()
@@ -449,11 +446,11 @@ void initFramebuffer()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-    screenShader = ResourceManager::LoadShader("../assets/shader/screen/screen.vs", "../assets/shader/screen/screen.fs");
+    screenShader = ResourceManager::LoadShader("assets/shader/screen/screen.vs", "assets/shader/screen/screen.fs");
     screenShader->SetInteger("colorTexture", 0, true);
     screenShader->SetInteger("brightTexture", 1, true);
 
-    blurShader = ResourceManager::LoadShader("../assets/shader/screen/effect/blur.vs", "../assets/shader/screen/effect/blur.fs");
+    blurShader = ResourceManager::LoadShader("assets/shader/screen/effect/blur.vs", "assets/shader/screen/effect/blur.fs");
     blurShader->SetInteger("image", 0, true);
 
     //Create framebuffers for HDR and bloom!
@@ -500,7 +497,7 @@ void initFramebuffer()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    skyboxShader = ResourceManager::LoadShader("../assets/shader/skybox/default.vs", "../assets/shader/skybox/default.fs");
+    skyboxShader = ResourceManager::LoadShader("assets/shader/skybox/default.vs", "assets/shader/skybox/default.fs");
     skyboxShader->SetInteger("skybox", 0, true);
     glGenVertexArrays(1, &skyboxVAO);
     glGenBuffers(1, &skyboxVBO);
@@ -510,5 +507,5 @@ void initFramebuffer()
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-    skyboxTexture = ResourceManager::LoadCubemap("../assets/texture/skybox/box1");
+    skyboxTexture = ResourceManager::LoadCubemap("assets/texture/skybox/box1");
 }

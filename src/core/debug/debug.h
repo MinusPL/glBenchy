@@ -2,12 +2,12 @@
 #define DEBUG_H
 
 #include "../../handmademath/math.h"
-#include <glad/glad.h>
+
 #include <vector>
 
 class Debug
 {
-    static GLuint line_shader;
+    static int line_shader;
 public:
 
     

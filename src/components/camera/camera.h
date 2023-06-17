@@ -20,6 +20,9 @@ public:
     float nearClipPlane;
     float farClipPlane;
 
+    bool usePostprocess;
+    bool drawSkybox;
+
     UMat4 projection;
     UMat4 view;
 

@@ -1,0 +1,17 @@
+guid: 5eda7fa4-eed8-4f07-b0f7-9cfd067ecc71
+Materials:
+  Belt: /model/environment/factory/material/belt.mat
+  BlackSteel: ""
+  BlackSteel.002: ""
+  Ceiling: /model/environment/factory/material/ceiling.mat
+  Material: /model/environment/factory/material/floor.mat
+  Material.001: ""
+  Material.002: ""
+  Material.003: ""
+  Material.004: ""
+  Material.005: ""
+  Material.006: ""
+  Material.007: ""
+  MetalBase: /model/environment/factory/material/metalbase.mat
+  Orange Coat: ""
+  Walls: /model/environment/factory/material/walls.mat

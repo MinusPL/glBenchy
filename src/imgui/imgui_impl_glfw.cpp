@@ -77,6 +77,8 @@
 #define GLFW_HAS_NEW_CURSORS          (0)
 #endif
 #define GLFW_HAS_GAMEPAD_API          (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3300) // 3.3+ glfwGetGamepadState() new api
+#undef  GLFW_HAS_GAMEPAD_API
+#define GLFW_HAS_GAMEPAD_API (0)
 #define GLFW_HAS_GET_KEY_NAME         (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3200) // 3.2+ glfwGetKeyName()
 
 // GLFW data

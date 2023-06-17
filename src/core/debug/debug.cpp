@@ -1,8 +1,16 @@
 #include "debug.h"
 
+#ifndef EMSCRIPTEN
+#include <glad/glad.h>
+#else
+#include <emscripten/emscripten.h>
+#define GLFW_INCLUDE_ES3
+#endif
+#include <GLFW/glfw3.h>
+
 #include "../../components/camera/camera.h"
 
-GLuint Debug::line_shader;
+int Debug::line_shader;
 
 void Debug::InitDebug()
 {

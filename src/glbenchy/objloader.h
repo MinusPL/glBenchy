@@ -7,6 +7,8 @@ class ObjLoader
 {
 public:
     static GLBObject* CreateArm();
+    static GLBObject* LoadHall();
+    static GLBObject* CreateWholeScreenQuad();
 };
 
 #endif

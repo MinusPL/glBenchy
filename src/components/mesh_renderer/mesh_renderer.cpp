@@ -37,18 +37,22 @@ void MeshRendererComponent::Draw()
             m_Material->m_Shader->SetInteger("UsedLightCount", (int)LightComponent::lights.size());
 
             m_Material->m_Shader->SetFloat("_SinTime", HMM_SINF((float)Time::time));
+            m_Material->m_Shader->SetFloat("_Time", (float)Time::time);
             m_Material->m_Shader->SetVector2f("textureScaling", m_Material->m_TextureScale);
 
             for(int i = 0; i < LightComponent::lights.size(); i++)
             {
-                std::string posStr = std::format("lights[{}].position", i);
-                std::string spotDirStr = std::format("lights[{}].spotDirection", i);
-                std::string constantStr = std::format("lights[{}].constant", i);
-                std::string linearStr = std::format("lights[{}].linear", i);
-                std::string quadraticStr = std::format("lights[{}].quadratic", i);
-                std::string colorStr = std::format("lights[{}].color", i);
-                std::string spotAngleStr = std::format("lights[{}].spotAngle", i);
-                std::string softSpotAngleStr = std::format("lights[{}].softSpotAngle", i);
+                char varName[512];
+                sprintf(varName, "lights[%d]", i);
+                std::string posStr = std::string(varName) + ".position";
+                std::string spotDirStr = std::string(varName) + ".spotDirection";
+                std::string constantStr = std::string(varName) + ".constant";
+                std::string linearStr = std::string(varName) + ".linear";
+                std::string quadraticStr = std::string(varName) + ".quadratic";
+                std::string colorStr = std::string(varName) + ".color";
+                std::string spotAngleStr = std::string(varName) + ".spotAngle";
+                std::string softSpotAngleStr = std::string(varName) + ".softSpotAngle";
+
 
                 m_Material->m_Shader->SetVector4f(posStr.c_str(), LightComponent::lights[i]->position);
                 m_Material->m_Shader->SetFloat(constantStr.c_str(), LightComponent::lights[i]->constant); 

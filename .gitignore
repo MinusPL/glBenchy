@@ -1,7 +1,8 @@
 #Add ignored files!
 
 build
+build-web
 scripts
 .vscode
 .vscode/*
-out/bin/*
+out/*

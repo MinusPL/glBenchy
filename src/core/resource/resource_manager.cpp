@@ -16,6 +16,7 @@
 
 #include "../../components/mesh_renderer/mesh_renderer.h"
 
+
 struct ModelMetadata
 {
 	std::map<std::string, std::string> materialOverrides;
@@ -53,6 +54,8 @@ static _UUID  LoadMetadata(const char* filePath)
 Shader* ResourceManager::LoadShader(const char *vertexPath, const char *fragmentPath)
 {
     _UUID objectID = LoadMetadata(fragmentPath);
+
+	//printf("Compiling shader %s\n", fragmentPath);
 
     Shader* sh = new Shader();
     sh->guid = objectID;
@@ -112,7 +115,7 @@ Material* ResourceManager::LoadMaterial(const char *materialFilePath)
 			for(YAML::const_iterator cit=textures.begin(); cit!=textures.end(); cit++) 
 			{
 				std::string texName = cit->first.as<std::string>().substr(1,cit->first.as<std::string>().length()-1);
-				std::string filePath = "../assets" + cit->second["m_TextureFile"].as<std::string>();
+				std::string filePath = "assets" + cit->second["m_TextureFile"].as<std::string>();
 				Texture* tex = ResourceManager::LoadTexture(filePath.c_str());
 				tex->name = texName;
 				mat->m_Textures[texName] = tex;
@@ -123,8 +126,8 @@ Material* ResourceManager::LoadMaterial(const char *materialFilePath)
 
 	if(materialData["m_ShaderFile"] != nullptr)
 	{
-		std::string vertSource = "../assets" + materialData["m_ShaderFile"].as<std::string>() + ".vs";
-		std::string fragSource = "../assets" + materialData["m_ShaderFile"].as<std::string>() + ".fs";
+		std::string vertSource = "assets" + materialData["m_ShaderFile"].as<std::string>() + ".vs";
+		std::string fragSource = "assets" + materialData["m_ShaderFile"].as<std::string>() + ".fs";
 		mat->m_Shader = ResourceManager::LoadShader(vertSource.c_str(), fragSource.c_str());
 	}
 	else
@@ -230,7 +233,7 @@ void processNode(aiNode * node, const aiScene * scene, GLBObject** rootObject, M
 				{
 					if(modelData.materialOverrides.at(importedMaterial->GetName().C_Str()).length() > 0)
 					{
-						std::string matPath = "../assets" + modelData.materialOverrides.at(importedMaterial->GetName().C_Str());
+						std::string matPath = "assets" + modelData.materialOverrides.at(importedMaterial->GetName().C_Str());
 						Material* matPtr = ResourceManager::LoadMaterial(matPath.c_str());
 						newMaterial = *matPtr;
 						delete matPtr;

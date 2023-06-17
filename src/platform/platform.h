@@ -12,4 +12,10 @@
 
 void platformWindowResize(GLFWwindow* wPtr, int width, int height);
 
+/**
+ * This is a comment!
+ * @param none
+*/
+double GetPlatformTime();
+
 #endif

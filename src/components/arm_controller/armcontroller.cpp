@@ -47,7 +47,7 @@ void ArmControllerComponent::InverseKinematics(UVec3 target, std::vector<float> 
     for(int i = 0; i < _joints.size(); i++)
     {
         float g = PartialGradient(target, angles, i);
-        angles[i] -= g * 5000.0f * (float)Time::deltaTime;
+        angles[i] -= g * 100.0f;
         //if(angles[i] > 360.f) angles[i] -= 360.f;
 
         if(_angleLimits[i].X != 0.0f && _angleLimits[i].Y != 0.0f)

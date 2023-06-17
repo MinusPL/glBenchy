@@ -95,6 +95,12 @@ public:
         UpdateVectors();
     }
 
+    void LookAt(UVec3 target, UVec3 worldUp = {0.0f,0.0f,1.0f})
+    {
+        rotation = HMM_M4ToQ_RH(HMM_LookAt_RH(position, target, worldUp));
+        UpdateVectors();
+    }
+
     UMat4 ApplyTransform();
 
     Transform();
