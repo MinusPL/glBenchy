@@ -249,7 +249,7 @@ int main(int argc, char** argv)
     camera = new CameraComponent();
     camera->orthographicSize = {1, 1};
     camera->SetCameraMode(true);
-    //camera->drawSkybox = false;
+    camera->drawSkybox = false;
     camera->usePostprocess = false;
     oscPtr->AddComponent(camera);
     oscPtr->transform.Position(0.0f,0.0f, 2.0f);
